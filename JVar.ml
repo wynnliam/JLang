@@ -86,7 +86,7 @@ let check_program (user:bool)  (Program (_,e) as p) =
      check_exp Env.empty e;
      p
    with
-     CheckError -> if user then raise UserStaticError else failwith "RVar check failure"
+     CheckError -> if user then raise UserStaticError else failwith "JVar check failure"
    
 (* Interpretation *)
 
