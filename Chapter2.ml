@@ -428,11 +428,11 @@ let passes =
      PCons(Uniquify.pass,
      PCons(RemoveComplexOperands.pass,
      PCons(ExplicateControl.pass,
-     PCons(SelectInstructions.pass,
+     (*PCons(SelectInstructions.pass,
      PCons(AssignHomes.pass,
      PCons(PatchInstructions.pass,
-     PCons(execute_pass,
-	   PNil))))))))
+     PCons(execute_pass,*)
+	   PNil))))
 
 (* eventually it should look like this...
      PCons(RemoveComplexOperands.pass,
