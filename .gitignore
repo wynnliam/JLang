@@ -1,4 +1,3 @@
 ._d/
-*.cmi
-*.cmo
+*.cm*
 driver

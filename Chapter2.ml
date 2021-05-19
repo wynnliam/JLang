@@ -2,7 +2,7 @@ open Util
 
 module Uniquify =
   struct
-    open RVar
+    open JVar
 
     let rec do_exp env = function
 	Var x ->
@@ -36,9 +36,9 @@ module Uniquify =
     let check_program (Program(_,e) as p) =
       envr := Env.empty;
       check_exp e;
-      RVar.check_program false p
+      JVar.check_program false p
 
-    let pass : (unit RVar.program, unit RVar.program, unit RVar.program) pass =
+    let pass : (unit JVar.program, unit JVar.program, unit JVar.program) pass =
       {name="uniquify";
        transformer=do_program;
        printer=print_program;
@@ -48,7 +48,7 @@ module Uniquify =
 
 module RemoveComplexOperands = 
   struct
-    open RVar
+    open JVar
 
     (* Behold this monstrosity I did before! *)
     (* let rec rco_atom env e =
@@ -140,11 +140,11 @@ module RemoveComplexOperands =
       fresh := 0;
       Program(a, rco_exp e)
 
-    let exp_iter_with_fail (exp : RVar.exp) =
+    let exp_iter_with_fail (exp : JVar.exp) =
       if is_atm exp then ()
       else failwith "Non-atom prim ops found"
 
-    let rec check_exp (exp : RVar.exp) =
+    let rec check_exp (exp : JVar.exp) =
     match exp with
     | Let (x, e1, e2) -> check_exp e1; check_exp e2
     | Prim (Read, []) -> ()
@@ -153,9 +153,9 @@ module RemoveComplexOperands =
 
     let check_program (Program(_,e) as p) =
       check_exp e;
-      RVar.check_program false p
+      JVar.check_program false p
 
-    let pass : (unit RVar.program, unit RVar.program, unit RVar.program) pass =
+    let pass : (unit JVar.program, unit JVar.program, unit JVar.program) pass =
       {name="remove complex operands";
        transformer=do_program;
        printer=print_program;
@@ -163,8 +163,8 @@ module RemoveComplexOperands =
        evaluator=interpret interp_program}
   end (* RemoveComplexOperands *)
 
-(*let get_exp (RVar.Program(a, e)) = e
-let test str = RemoveComplexOperands.rco_exp Util.Env.empty (get_exp (RVar.parse_from_string str));*)
+(*let get_exp (JVar.Program(a, e)) = e
+let test str = RemoveComplexOperands.rco_exp Util.Env.empty (get_exp (JVar.parse_from_string str));*)
     
 module ExplicateControl =
   struct 
@@ -172,46 +172,46 @@ module ExplicateControl =
 
     let convert_to_catm ratm =
       match ratm with
-      | RVar.Int n -> Int n
-      | RVar.Var v -> Var v
+      | JVar.Int n -> Int n
+      | JVar.Var v -> Var v
       | _ -> failwith "Trying to convert non-atom!"
 
     (* Requires that texp is in tail position *)
     let rec explicate_tail texp =
       match texp with
-      | RVar.Int n -> Return (Atom (Int n))
-      | RVar.Var v -> Return (Atom (Var v))
-      | RVar.Prim (Neg, [atm]) -> Return (Prim (Neg, [convert_to_catm atm]))
-      | RVar.Prim (Add, [atm1;atm2]) -> Return (Prim (Add, [convert_to_catm atm1; convert_to_catm atm2]))
-      | RVar.Prim (Read, []) -> Return (Prim (Read, []))
-      | RVar.Let (x, e1, e2) ->
+      | JVar.Int n -> Return (Atom (Int n))
+      | JVar.Var v -> Return (Atom (Var v))
+      | JVar.Prim (Neg, [atm]) -> Return (Prim (Neg, [convert_to_catm atm]))
+      | JVar.Prim (Add, [atm1;atm2]) -> Return (Prim (Add, [convert_to_catm atm1; convert_to_catm atm2]))
+      | JVar.Prim (Read, []) -> Return (Prim (Read, []))
+      | JVar.Let (x, e1, e2) ->
         let result = explicate_tail e2 in
         explicate_assign e1 x result
       | _ -> failwith "Unhandled explicate_tail case!"
 
     and explicate_assign exp x cont =
       match exp with
-      | RVar.Int n -> Seq (Assign (x, Atom (Int n)), cont)
-      | RVar.Var v -> Seq (Assign (x, Atom (Var v)), cont)
-      | RVar.Prim (Neg, [atm]) ->
+      | JVar.Int n -> Seq (Assign (x, Atom (Int n)), cont)
+      | JVar.Var v -> Seq (Assign (x, Atom (Var v)), cont)
+      | JVar.Prim (Neg, [atm]) ->
         let c = convert_to_catm atm in
         let n = Prim (Neg, [c]) in
         Seq (Assign (x, n), cont)
-      | RVar.Prim (Add, [atm1; atm2]) ->
+      | JVar.Prim (Add, [atm1; atm2]) ->
         let c1 = convert_to_catm atm1 in
         let c2 = convert_to_catm atm2 in
         let a = Prim (Add, [c1; c2]) in
         Seq (Assign (x, a), cont)
-      | RVar.Prim (Read, []) -> Seq (Assign (x, Prim (Read, [])), cont)
-      | RVar.Let (y, rhs, body) ->
+      | JVar.Prim (Read, []) -> Seq (Assign (x, Prim (Read, [])), cont)
+      | JVar.Let (y, rhs, body) ->
         let e1 = explicate_assign body x cont in
         explicate_assign rhs y e1
       | _ -> failwith "Unhandled explicate_assign case!"
 
-    let do_program (RVar.Program (_, exp)) =
+    let do_program (JVar.Program (_, exp)) =
       Program ((), [("start", explicate_tail exp)])
 
-    let pass : (unit RVar.program, unit CVar.program, (unit Env.t) CVar.program) pass =
+    let pass : (unit JVar.program, unit CVar.program, (unit Env.t) CVar.program) pass =
       {name="explicate control";
        transformer=do_program;
        printer=print_program (fun _ _ -> ());
@@ -351,7 +351,7 @@ end (* AssignHomes *)
 let extract_asm (X86Int.Block (_, asm)) = asm
 
 let runner code =
-  let rvar  = RVar.parse_from_string code in
+  let rvar  = JVar.parse_from_string code in
   let uvar  = Uniquify.do_program rvar in
   let rrvar = RemoveComplexOperands.do_program uvar in
   let evar = ExplicateControl.do_program rrvar in
@@ -397,12 +397,12 @@ module PatchInstructions =
     
 (* This pass is always required: it does static checking on the source and can be used to obtain the
    "correct" result of evaluation. *)
-let initial_pass : (unit RVar.program, unit RVar.program, unit RVar.program) pass = 
+let initial_pass : (unit JVar.program, unit JVar.program, unit JVar.program) pass = 
   {name="source checking";
    transformer=(fun p -> p);
-   printer=RVar.print_program;	      
-   checker=RVar.check_program true;
-   evaluator=interpret RVar.interp_program}  
+   printer=JVar.print_program;	      
+   checker=JVar.check_program true;
+   evaluator=interpret JVar.interp_program}  
 
 (* This final pass is suitable for testing the generated X86 code "for real." *)
 let execute_pass : ((int,unit) X86Int.program, (int,unit) X86Int.program, (int,unit) X86Int.program) pass =  
@@ -434,16 +434,6 @@ let passes =
      PCons(PatchInstructions.pass,
      PCons(execute_pass,
 	   PNil))))))))*)
-
-(* eventually it should look like this...
-     PCons(RemoveComplexOperands.pass,
-     PCons(ExplicateControl.pass,
-     PCons(SelectInstructions.pass,
-     PCons(AssignHomes.pass,
-     PCons(PatchInstructions.pass,
-     PCons(execute_pass,
-	   PNil))))))))
-*)
    
 (* Some specializations of Util functions.
    You may wish to alter the initial boolean flags. 
@@ -452,10 +442,10 @@ let passes =
 let _ = Util.debug_level := 0
 
 (* Suitable for top-level use. *)
-let test_string = Util.test_string true false RVar.parse_from_string passes 
+let test_string = Util.test_string true false JVar.parse_from_string passes 
 
 (* Suitable for bulk testing with comparison between first and last pass results. *)
-let test_files = Util.test_files false true RVar.parse_from_channel passes 
+let test_files = Util.test_files false true JVar.parse_from_channel passes 
 
 (* Packaging interpreter as a command line executable.
    Run this, as, e.g. 
