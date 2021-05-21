@@ -42,8 +42,7 @@ module Uniquify =
       {name="uniquify";
        transformer=do_program;
        printer=print_program;
-       checker=check_program;
-       evaluator=interpret interp_program}
+       checker=check_program;}
   end (* Uniquify *) 
 
 module RemoveComplexOperands = 
@@ -159,8 +158,7 @@ module RemoveComplexOperands =
       {name="remove complex operands";
        transformer=do_program;
        printer=print_program;
-       checker=check_program;
-       evaluator=interpret interp_program}
+       checker=check_program;}
   end (* RemoveComplexOperands *)
 
 (*let get_exp (JVar.Program(a, e)) = e
@@ -215,8 +213,7 @@ module ExplicateControl =
       {name="explicate control";
        transformer=do_program;
        printer=print_program (fun _ _ -> ());
-       checker=check_program;
-       evaluator=interpret interp_program}
+       checker=check_program;}
 
   end (* ExplicateControl *)
 
@@ -276,8 +273,7 @@ module SelectInstructions =
       {name="select instructions";
        transformer=do_program;
        printer=print_program (print_env (fun _ _ -> ()));
-       checker=CheckLabels.check_program;
-       evaluator=interpret (interp_program true)}
+       checker=CheckLabels.check_program;}
 end (* SelectInstructions *)
 
 module AssignHomes =
@@ -343,20 +339,8 @@ module AssignHomes =
       {name="assign homes";
        transformer=do_program;
        printer=print_program (fun oc -> Printf.fprintf oc "size:%d\n");
-       checker=CheckLabels.check_program;
-       evaluator=interpret (interp_program false)}
+       checker=CheckLabels.check_program;}
 end (* AssignHomes *)
-
-
-let extract_asm (X86Int.Block (_, asm)) = asm
-
-let runner code =
-  let rvar  = JVar.parse_from_string code in
-  let uvar  = Uniquify.do_program rvar in
-  let rrvar = RemoveComplexOperands.do_program uvar in
-  let evar = ExplicateControl.do_program rrvar in
-  let xvar = SelectInstructions.do_program evar in
-  AssignHomes.do_program xvar
 
 module PatchInstructions =
   struct
@@ -390,8 +374,7 @@ module PatchInstructions =
       {name="patch instructions";
        transformer=do_program;
        printer=print_program (fun oc -> Printf.fprintf oc "size:%d\n");
-       checker=check_program;
-       evaluator=interpret (interp_program false)}
+       checker=check_program;}
 
   end (* PatchInstructions *)
     
@@ -401,24 +384,21 @@ let initial_pass : (unit JVar.program, unit JVar.program, unit JVar.program) pas
   {name="source checking";
    transformer=(fun p -> p);
    printer=JVar.print_program;	      
-   checker=JVar.check_program true;
-   evaluator=interpret JVar.interp_program}  
+   checker=JVar.check_program true;}
 
 (* This final pass is suitable for testing the generated X86 code "for real." *)
 let execute_pass : ((int,unit) X86Int.program, (int,unit) X86Int.program, (int,unit) X86Int.program) pass =  
   {name="emit, assemble, link, run";
    transformer=(fun p -> p);
    printer=(fun oc p -> ());
-   checker=(fun p -> p);
-   evaluator=emit_and_run X86Int.emit}
+   checker=(fun p -> p);}
 
 (* An alternative final pass that just emits assembly code to a .s file *)
 let emit_pass : ((int,unit) X86Int.program, (int,unit) X86Int.program, (int,unit) X86Int.program) pass =  
   {name="emit";
    transformer=(fun p -> p);
    printer=(fun oc p -> ());
-   checker=(fun p -> p);
-   evaluator=(fun p -> emit X86Int.emit p; 0L)}
+   checker=(fun p -> p);}
 
 (* Define sequence of passes for this Chapter.
    Adjust this as you implement more passes.
@@ -462,6 +442,3 @@ let _ = if not !Sys.interactive then
 
 (* If you build a top-level driver.top for interactive use, you'll need to open
    any Chapter2 and other modules in order to access the functions in these files. *)
-    
-	     
-    

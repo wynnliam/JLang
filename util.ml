@@ -81,7 +81,6 @@ type ('a,'b,'c) pass =
       transformer: 'a -> 'b;
       printer: out_channel -> 'b -> unit;
       checker: 'b -> 'c;
-      evaluator: 'c -> value 
     }
 
 type ('a,'b) passlist =  (* uses as GADT (generalized algebraic data type) to existentially quantify 'b *)
@@ -133,33 +132,16 @@ let do_pass (p: ('a,'b,'c) pass) (prog:'a) : 'c =
     - compare: if there are at least two passes, evaluate the first and last passes and
       flag differernces between initial and final results  *)
 let do_passes (eval: bool) (compare: bool) (pl: ('a,'b) passlist) (prog:'a) : unit =
-  let do_eval evaluator prog : value =
-    if !debug_level > 0 then Printf.eprintf "Evaluating...%!";
-    let r = evaluator prog in
-    if !debug_level > 0 then Printf.eprintf "Result = %Ld\n%!" r;
-    r in
   match pl with
   | PNil -> ()
-  | PCons (p,PNil) ->
-      let prog = do_pass p prog in
-      if eval then
-	let v = do_eval p.evaluator prog in
-	Printf.eprintf "Result = %Ld\n%!" v
+  | PCons (p,PNil) -> do_pass p prog; ()
   | PCons (p,pl) ->
       let prog = do_pass p prog in
-      let v_original = if compare then do_eval p.evaluator prog else 0L in
       let rec do_passlist : 'a 'b . ('a,'b) passlist -> 'a -> unit = fun pl prog -> 
 	match pl with
 	| PNil -> ()
-	| PCons(p,PNil) -> 
-	    let prog = do_pass p prog in
-	    if eval || compare then
-	      let v_final = do_eval p.evaluator prog in
-	      if eval then
-		Printf.eprintf "Result = %Ld\n%!" v_final;
- 	      if compare && v_original <> v_final then
-	 	Printf.eprintf "Comparison failed: original result = %Ld final_result = %Ld\n%!" v_original v_final
-        | PCons(p,pl) ->
+	| PCons(p,PNil) -> do_pass p prog; ()
+  | PCons(p,pl) ->
 	    do_passlist pl (do_pass p prog) in
       do_passlist pl prog
 
