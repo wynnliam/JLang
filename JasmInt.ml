@@ -1,3 +1,5 @@
+open Util
+
 (*
   sipush int -- pushes an int
   istore_n -- stores int on stack at local variable n
@@ -16,7 +18,9 @@ type arg =
   | Var of string
 
 type instr = 
-    (* Pushes an integer constant onto the stack *)
+    (* Pushes a long integer constant onto the stack *)
+    (* NOTE: Should be called "Lconst" instead of Push,
+       but our language only has one type - integers *)
   | Push of arg
     (* Loads local onto the stack *)
   | Load of arg
@@ -29,3 +33,7 @@ type instr =
   | Read of arg
     (* Invokes read_int.write() *)
   | Write of arg
+
+type label = string
+
+type 'pinfo program = Program of 'pinfo * label * instr list
