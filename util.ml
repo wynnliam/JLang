@@ -134,13 +134,11 @@ let do_pass (p: ('a,'b,'c) pass) (prog:'a) : 'c =
 let do_passes (eval: bool) (compare: bool) (pl: ('a,'b) passlist) (prog:'a) : unit =
   match pl with
   | PNil -> ()
-  | PCons (p,PNil) -> do_pass p prog; ()
   | PCons (p,pl) ->
       let prog = do_pass p prog in
       let rec do_passlist : 'a 'b . ('a,'b) passlist -> 'a -> unit = fun pl prog -> 
 	match pl with
 	| PNil -> ()
-	| PCons(p,PNil) -> do_pass p prog; ()
   | PCons(p,pl) ->
 	    do_passlist pl (do_pass p prog) in
       do_passlist pl prog

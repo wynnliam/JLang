@@ -219,165 +219,68 @@ module ExplicateControl =
 
 module SelectInstructions =
   struct
-    open X86Int
+    open JasmInt
 
-    (* I know I should do this in explicate_tail, but it's so much easier to
-       traverse the program again building my variables list! *)
-    let rec get_variables prog env =
-      match prog with
-        | CVar.Return _ -> env
-        | CVar.Seq (CVar.Assign (var, _), tail) ->
-          let env' = Env.add var () env in
-          get_variables tail env'
+(*
+type primop =
+    Read
+  | Neg
+  | Add
 
-    let handle_atm atm =
-      match atm with
-      | CVar.Int n -> Imm n
-      | CVar.Var v -> Var v
+let arity = function
+    Read -> 0
+  | Neg -> 1
+  | Add -> 2
 
-    let handle_exp exp arg =
+type atm =
+    Int of int64
+  | Var of var
+
+type exp =
+    Atom of atm
+  | Prim of primop * atm list
+
+type stmt =
+    Assign of var * exp
+
+type tail =
+    Return of exp
+  | Seq of stmt*tail*)
+
+    let do_atm a = assert false
+
+    let do_exp (exp : CVar.exp) =
       match exp with
-      | CVar.Atom a -> [Movq (handle_atm a, arg)]
-      | CVar.Prim (Add, [atm1; atm2]) -> [Movq (handle_atm atm1, arg);
-                                          Addq (handle_atm atm2, arg)]
-      | CVar.Prim (Neg, [atm]) -> [Movq (handle_atm atm, arg);
-                                   Negq arg]
-      | CVar.Prim (Read, []) -> [Callq ("read_int", 0);
-                                 Movq (Reg RAX, arg)]
-      | _ -> failwith "Unhandled Primitive!"
+      | Atom a -> do_atm a
+      | Prim(op, args) -> failwith "Not yet implemented!"
 
-    let handle_stmt stmt =
-      match stmt with
-      | CVar.Assign (var, exp) -> handle_exp exp (Var var)
+    let do_stmt s = assert false
 
-    let rec handle_tail tail =
+    let rec do_tail (tail : CVar.tail) =
       match tail with
-      | CVar.Return exp ->
-        let body = handle_exp exp (Reg RAX) in
-        List.append body [Jmp "conclusion"]
-      | CVar.Seq (stmt, tail') ->
-        let body = handle_stmt stmt in
-        List.append body (handle_tail tail')
+      | Return exp -> do_exp exp
+      | Seq(s, t) -> (do_stmt s) @ (do_tail t)
 
-    let do_prog_body prog = handle_tail prog
+    let do_program (CVar.Program(vars, lbs)) =
+      let f = fun acc (lbl, t) -> acc @ (do_tail t) in
+      let b = List.fold_left f [] lbs in
+      Program((), "main", b)
 
-    let do_program (CVar.Program (info, exp)) =
-      match exp with
-      | [(lbl, program)] ->
-          let p = func_entry_exit in
-          let body = [("start", Block((), do_prog_body program))] in
-          Program (get_variables program Env.empty, List.append p body)
-      | _ -> failwith "Bad CVar input!"
+    let check_program (Program (pinfo, lbl, instrs)) =
+      let p = Env.empty in
+      Program(p, lbl, instrs)
 
-    let pass : ((unit Env.t) CVar.program, (unit Env.t,unit) X86Int.program, (unit Env.t,unit) X86Int.program) pass = 
-      {name="select instructions";
-       transformer=do_program;
-       printer=print_program (print_env (fun _ _ -> ()));
-       checker=CheckLabels.check_program;}
-end (* SelectInstructions *)
+    (* TODO: Implement pass *)
+    let pass : ((unit Env.t) CVar.program,
+                unit JasmInt.program,
+                (int Env.t) JasmInt.program) pass =
+    {name="select instructions";
+     transformer=do_program;
+     printer=print_program;
+     checker=check_program;}
 
-module AssignHomes =
-  struct
-    open X86Int
+  end (* Select Instructions *)
 
-    let compute_stack_size vars =
-      let f = fun k u acc -> 8 + acc in
-      Env.fold f vars 0
-
-    let get_vars_list vars =
-      let f = fun k u l -> k :: l in
-      Env.fold f vars []
-
-    let rec set_home vars curr_pos acc =
-      match vars with
-      | [] -> acc
-      | h :: t ->
-        let curr_pos' = Int32.sub curr_pos 8l in
-        let acc' = Env.add h (Deref (RBP, curr_pos')) acc in
-        set_home t curr_pos' acc'
-
-    let is_var m =
-    match m with
-    | Var s -> true
-    | _ -> false
-
-    let rec replace_vars varm code =
-      match code with
-      | [] -> []
-      | Movq(Var v1, Var v2) :: t -> Movq (Env.find v1 varm, Env.find v2 varm) :: replace_vars varm t
-      | Movq(Var v1, p) :: t -> Movq(Env.find v1 varm, p) :: replace_vars varm t
-      | Movq(p, Var v2) :: t -> Movq(p, Env.find v2 varm) :: replace_vars varm t
-      | Addq(Var v1, Var v2) :: t -> Addq(Env.find v1 varm, Env.find v2 varm) :: replace_vars varm t
-      | Addq(Var v1, p) :: t -> Addq(Env.find v1 varm, p) :: replace_vars varm t
-      | Addq(p, Var v2) :: t -> Addq(p, Env.find v2 varm) :: replace_vars varm t
-      | Negq(Var v) :: t -> Negq(Env.find v varm) :: replace_vars varm t
-      | h :: t -> h :: replace_vars varm t
-
-    let rec find_body id body =
-      match body with
-      | [] -> failwith "No start block!"
-      | (lbl, blck) :: t -> if lbl = id then blck else find_body id t
-
-    let rec rem_frame_size true_size body =
-      match body with
-      | [] -> []
-      | Addq (Var "`framesize", p) :: t -> Addq (Imm true_size, p) :: t
-      | Subq (Var "`framesize", p) :: t -> Subq (Imm true_size, p) :: t
-      | h :: t -> h :: (rem_frame_size true_size t)
-
-    let do_program (Program (vars, body)) =
-      let varm = set_home (get_vars_list vars) 8l Env.empty in
-      let Block (_, strt) = find_body "start" body  in
-      let Block (_, main)  = find_body "main" body in
-      let Block (_, conc)  = find_body "conclusion" body in
-      let stack_size = roundup (compute_stack_size vars) 16 in
-      Program (stack_size, [("main", Block((), rem_frame_size (Int64.of_int stack_size) main));
-                            ("start", Block((), replace_vars varm strt));
-                            ("conclusion", Block((), rem_frame_size (Int64.of_int stack_size) conc))])
-
-    let pass : ((unit Env.t,unit) X86Int.program, (int,unit) X86Int.program, (int,unit) X86Int.program) pass = 
-      {name="assign homes";
-       transformer=do_program;
-       printer=print_program (fun oc -> Printf.fprintf oc "size:%d\n");
-       checker=CheckLabels.check_program;}
-end (* AssignHomes *)
-
-module PatchInstructions =
-  struct
-    open X86Int
-
-    (* fix two problems: mem-to-mem moves and immediates requiring more than 32 bits *)
-    let do_instr = function
-      | Addq((Deref (_,_) as a1),(Deref (_,_) as a2)) -> 
-	  [Movq(a1,Reg RAX);Addq(Reg RAX,a2)]
-      | Addq(Imm i,a2) when needs_64 i ->
-          [Movabsq(Imm i,Reg RAX);Addq(Reg RAX,a2)]
-      | Subq((Deref (_,_) as a1),(Deref (_,_) as a2)) ->
-	  [Movq(a1,Reg RAX);Subq(Reg RAX,a2)]
-      | Subq(Imm i,a2) when needs_64 i ->
-          [Movabsq(Imm i,Reg RAX);Subq(Reg RAX,a2)]
-      | Movq((Deref (_,_) as a1),(Deref (_,_) as a2)) ->
-	  [Movq(a1,Reg RAX);Movq(Reg RAX,a2)]
-      | Movq(Imm i,a2) when needs_64 i ->
-          [Movabsq(Imm i,Reg RAX);Movq(Reg RAX,a2)]
-      | instr -> [instr]
-
-    let do_block (Block(b,instrs)) = Block(b,List.concat (List.map do_instr instrs))
-	
-    let do_program (Program(a,lbs)) = Program(a,List.map (fun (lab,block) -> (lab,do_block block)) lbs)
-
-    let check_program p =
-      CheckLabels.check_program p
-      |> CheckArgs.check_program 
-
-    let pass : ((int,unit) X86Int.program, (int,unit) X86Int.program, (int,unit) X86Int.program ) pass = 
-      {name="patch instructions";
-       transformer=do_program;
-       printer=print_program (fun oc -> Printf.fprintf oc "size:%d\n");
-       checker=check_program;}
-
-  end (* PatchInstructions *)
-    
 (* This pass is always required: it does static checking on the source and can be used to obtain the
    "correct" result of evaluation. *)
 let initial_pass : (unit JVar.program, unit JVar.program, unit JVar.program) pass = 
@@ -408,7 +311,8 @@ let passes =
      PCons(Uniquify.pass,
      PCons(RemoveComplexOperands.pass,
      PCons(ExplicateControl.pass,
-     PNil))))
+     PCons(SelectInstructions.pass,
+     PNil)))))
      (*PCons(SelectInstructions.pass,
      PCons(AssignHomes.pass,
      PCons(PatchInstructions.pass,
