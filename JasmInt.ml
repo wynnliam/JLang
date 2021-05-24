@@ -29,11 +29,10 @@ type instr =
     (* Pops an int off the stack, negates it, then pushes it back onto
        the stack *)
   | Neg
-    (* Invokes read_int.read() *)
-  | Read of arg
-    (* Invokes read_int.write() *)
-  | Write of arg
+    (* Invokes a static method *)
+  | Static of string
+    (* Invokes a virtual method *)
+  | Virtual of string
 
 type label = string
-
 type 'pinfo program = Program of 'pinfo * label * instr list
