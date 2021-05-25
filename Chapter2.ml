@@ -247,14 +247,26 @@ type tail =
     Return of exp
   | Seq of stmt*tail*)
 
-    let do_atm a = assert false
+    let do_atm a =
+      match a with
+      | CVar.Int i -> [Push (Imm i)]
+      | CVar.Var v -> [Load (Var v)]
+
+    let do_prim op =
+      match op with
+      | Primop.Add -> [Add]
 
     let do_exp (exp : CVar.exp) =
       match exp with
       | Atom a -> do_atm a
-      | Prim(op, args) -> failwith "Not yet implemented!"
+      | Prim(op, args) ->
+          let f = fun acc a -> acc @ (do_atm a) in
+          let args' = List.fold_left f [] args in
+          args' @ (do_prim op)
 
-    let do_stmt s = assert false
+    let do_stmt s =
+      match s with
+      | CVar.Assign(v, exp) -> (do_exp exp) @ [Store (Var v)]
 
     let rec do_tail (tail : CVar.tail) =
       match tail with

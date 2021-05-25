@@ -23,9 +23,9 @@ type instr =
        but our language only has one type - integers *)
   | Push of arg
     (* Loads local onto the stack *)
-  | Load of int
+  | Load of arg
     (* Pops value on the stack and stores it *)
-  | Store of int
+  | Store of arg
     (* Pops 2 ints off the stack, adds them, then push onto the stack *)
   | Add
     (* Pops an int off the stack, negates it, then pushes it back onto
@@ -44,8 +44,10 @@ let print_instruction oc intruction =
   match intruction with
   | Push (Imm i) -> Printf.fprintf oc "lconst_%l\n" (Int64.to_int i)
   | Push (Var v) -> Printf.fprintf oc "lconst_%s\n" v
-  | Load s -> Printf.fprintf oc "lload_%l\n" s
-  | Store d -> Printf.fprintf oc "lstore_%l\n" d
+  | Load (Imm i) -> Printf.fprintf oc "lload_%l\n" (Int64.to_int i)
+  | Load (Var v) -> Printf.fprintf oc "lload_%s\n" v
+  | Store (Imm i) -> Printf.fprintf oc "lstore_%l\n" (Int64.to_int i)
+  | Store (Var v) -> Printf.fprintf oc "lstore_%s\n" v
   | Add -> Printf.fprintf oc "ladd\n"
   | Neg -> Printf.fprintf oc "lneg\n"
   | InvokeStatic f -> Printf.fprintf oc "invokestatic Method %s\n" f
