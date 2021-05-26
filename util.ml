@@ -9,6 +9,11 @@ let try_finalize f x finally y =
   finally y;
   res
 
+let take (min : int) (max : int) : int list =
+  let rec f (i : int) =
+    if i = max then [max] else i :: (f (i + 1))
+  in f min
+
 (* USER-FACING EXCEPTIONS *)
 
 exception ParseError

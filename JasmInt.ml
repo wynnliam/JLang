@@ -33,7 +33,6 @@ type instr =
   | Neg
     (* Invokes a static method *)
   | InvokeStatic of string
-  | GetStatic of string
     (* Invokes a virtual method *)
   | Virtual of string
 
@@ -53,7 +52,6 @@ let print_instruction oc intruction =
   | Add -> Printf.fprintf oc "ladd\n"
   | Neg -> Printf.fprintf oc "lneg\n"
   | InvokeStatic f -> Printf.fprintf oc "invokestatic Method %s\n" f
-  | GetStatic f -> Printf.fprintf oc "getstatic Field %s\n" f
   | Virtual v -> Printf.fprintf oc "invokevirtual Method %s\n" v
 
 let rec print_instrs oc instrs =

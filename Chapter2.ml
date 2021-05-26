@@ -280,14 +280,32 @@ type tail =
       let b = List.fold_left f [] lbs in
       Program((), "main", b)
 
-    let check_program (Program (pinfo, lbl, instrs)) =
-      let p = Env.empty in
-      Program(p, lbl, instrs)
+    let env = ref Env.empty
 
-    (* TODO: Implement pass *)
+    let var_exists (v : string) (env : unit Env.t) =
+      match (Env.find_opt v env) with
+      | Some i -> ()
+      | None -> failwith "Variable not found!"
+      
+    let check_instr (instr : instr) =
+      match instr with
+      | Push (Var v) -> failwith "Cannot push Vars. Only Imms!"
+      | Load (Var v) ->
+          var_exists v !env;
+          instr
+      | Store (Var v) ->
+          env := Env.add v () !env;
+          instr
+      | _ -> instr
+
+    let check_program (Program (pinfo, lbl, instrs)) =
+      let instrs' = List.map check_instr instrs in
+      Util.print_env (fun _ _ -> ()) stdout !env;
+      Program(!env, lbl, instrs')
+
     let pass : ((unit Env.t) CVar.program,
                 unit JasmInt.program,
-                (int Env.t) JasmInt.program) pass =
+                (unit Env.t) JasmInt.program) pass =
     {name="select instructions";
      transformer=do_program;
      printer=print_program;
