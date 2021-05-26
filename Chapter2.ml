@@ -255,6 +255,8 @@ type tail =
     let do_prim op =
       match op with
       | Primop.Add -> [Add]
+      | Primop.Neg -> [Neg]
+      | Primop.Read -> [InvokeStatic readn]
 
     let do_exp (exp : CVar.exp) =
       match exp with

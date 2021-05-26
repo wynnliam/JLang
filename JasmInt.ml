@@ -40,11 +40,13 @@ type instr =
 type label = string
 type 'pinfo program = Program of 'pinfo * label * instr list
 
+let readn = "read_int.read:\"()I\""
+
 let print_instruction oc intruction =
   match intruction with
-  | Push (Imm i) -> Printf.fprintf oc "lconst_%l\n" (Int64.to_int i)
+  | Push (Imm i) -> Printf.fprintf oc "lconst_%d\n" (Int64.to_int i)
   | Push (Var v) -> Printf.fprintf oc "lconst_%s\n" v
-  | Load (Imm i) -> Printf.fprintf oc "lload_%l\n" (Int64.to_int i)
+  | Load (Imm i) -> Printf.fprintf oc "lload_%d\n" (Int64.to_int i)
   | Load (Var v) -> Printf.fprintf oc "lload_%s\n" v
   | Store (Imm i) -> Printf.fprintf oc "lstore_%l\n" (Int64.to_int i)
   | Store (Var v) -> Printf.fprintf oc "lstore_%s\n" v
