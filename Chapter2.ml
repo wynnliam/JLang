@@ -100,9 +100,9 @@ module EmitJasm =
     let check_program (Program (pinfo, lbl, instrs)) =
       let instrs' = List.map check_instr instrs in
       Util.print_env (fun _ _ -> ()) stdout !env;
-      Program((), lbl, instrs')
+      Program(!env, lbl, instrs')
 
-    let pass : (unit JVar.program, unit JasmInt.program, unit JasmInt.program) pass =
+    let pass : (unit JVar.program, unit JasmInt.program, unit Util.Env.t JasmInt.program) pass =
       {name="emit jasm";
        transformer=do_program;
        printer=print_program;
@@ -380,11 +380,11 @@ let passes =
      PCons(initial_pass,
      PCons(Uniquify.pass,
      PCons(EmitJasm.pass,
-     PNil)))
+     PCons(ChooseVariableIndex.pass,
+     PNil))))
      (*PCons(RemoveComplexOperands.pass,
      PCons(ExplicateControl.pass,
      PCons(SelectInstructions.pass,
-     PCons(ChooseVariableIndex.pass,
      PNil))))))*)
      (*PCons(SelectInstructions.pass,
      PCons(AssignHomes.pass,
