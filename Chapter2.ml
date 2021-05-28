@@ -244,6 +244,47 @@ module SelectInstructions =
 
   end (* Select Instructions *)
 
+module ChooseVariableIndex =
+  struct
+    open JasmInt
+    let get_index env var = Int64.of_int (Env.find var env)
+
+    let do_instr env instr = 
+      match instr with
+      | Push (Var v) -> Push (Imm (get_index env v))
+      | Load (Var v) -> Load (Imm (get_index env v))
+      | Store (Var v) -> Store (Imm (get_index env v))
+      | _ -> instr
+
+    let do_program (Program(env, lbl, instrs)) =
+      let ind = ref 1 in
+      let f = fun _ ->
+        let r = !ind in
+        ind := !ind + 1;
+        r in
+      let ind_env = Env.map f env in
+      Program((), lbl, List.map (do_instr ind_env) instrs)
+
+    let check_instr (instr : instr) =
+      match instr with
+      | Push (Var v) -> failwith "Found a Var. Should be an int!"
+      | Load (Var v) -> failwith "Found a Var. Should be an int!"
+      | Store (Var v) -> failwith "Found a Var. Should be an int!"
+      | _ -> ()
+
+    let check_program (Program (pinfo, lbl, instrs)) =
+      List.iter check_instr instrs;
+      Program(pinfo, lbl, instrs)
+
+    let pass : ((unit Env.t) JasmInt.program,
+                unit JasmInt.program,
+                unit JasmInt.program) pass =
+    {name="choose variable index";
+     transformer=do_program;
+     printer=print_program;
+     checker=check_program;}
+  end
+
 (* This pass is always required: it does static checking on the source and can be used to obtain the
    "correct" result of evaluation. *)
 let initial_pass : (unit JVar.program, unit JVar.program, unit JVar.program) pass = 
@@ -275,7 +316,8 @@ let passes =
      PCons(RemoveComplexOperands.pass,
      PCons(ExplicateControl.pass,
      PCons(SelectInstructions.pass,
-     PNil)))))
+     PCons(ChooseVariableIndex.pass,
+     PNil))))))
      (*PCons(SelectInstructions.pass,
      PCons(AssignHomes.pass,
      PCons(PatchInstructions.pass,
