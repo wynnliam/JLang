@@ -48,7 +48,27 @@ module Uniquify =
 module EmitJasm =
   struct
     open JasmInt
-    let do_program (JVar.Program(pinfo, expr)) = failwith "Barf!"
+    let do_op op =
+      match op with
+      | Primop.Add -> [Add]
+      | Primop.Neg -> [Neg]
+      | Primop.Read -> [InvokeStatic readn]
+
+    let rec do_exp exp =
+      match exp with
+      | JVar.Int i -> [Push (Imm i)]
+      | JVar.Prim(op, args) ->
+          let f = fun acc e -> (do_exp e) @ acc in
+          let args' = List.fold_left f [] args in
+          let op' = do_op op in
+          args' @ op'
+      | _ -> assert false
+    (*Int of int64
+  | Prim of primop * exp list
+  | Var of var
+  | Let of var * exp * exp*)
+
+    let do_program (JVar.Program(pinfo, expr)) = Program((), "main", do_exp expr)
 
     let env = ref Env.empty
 
@@ -350,7 +370,8 @@ let emit_pass : ((int,unit) X86Int.program, (int,unit) X86Int.program, (int,unit
 let passes = 
      PCons(initial_pass,
      PCons(Uniquify.pass,
-     PNil))
+     PCons(EmitJasm.pass,
+     PNil)))
      (*PCons(RemoveComplexOperands.pass,
      PCons(ExplicateControl.pass,
      PCons(SelectInstructions.pass,
