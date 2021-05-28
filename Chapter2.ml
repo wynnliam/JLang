@@ -71,11 +71,13 @@ module EmitJasm =
 
     let emit_jasm expr =
       let instrs = do_exp expr in
-      let (Var r) = Var(gensym "`result") in
+      let r = gensym "`result" in
       let print_instrs =
-        [Store (Var r); 
+        [Store (Var r); Load (Var r); InvokeStatic writn] in
+      instrs @ print_instrs
 
-    let do_program (JVar.Program(pinfo, expr)) = Program((), "main", do_exp expr)
+    let do_program (JVar.Program(pinfo, expr)) =
+      Program((), "main", emit_jasm expr)
 
     let env = ref Env.empty
 
