@@ -33,6 +33,8 @@ type instr =
   | Neg
     (* Invokes a static method *)
   | InvokeStatic of string
+    (* Puts result of static method call onto stack *)
+  | GetStatic of string
     (* Invokes a virtual method *)
   | Virtual of string
 
@@ -40,6 +42,7 @@ type label = string
 type 'pinfo program = Program of 'pinfo * label * instr list
 
 let readn = "read_int.read:\"()I\""
+let pstrmn = "java/lang/System.out:\"Ljava/io/PrintStream;\";"
 
 let print_instruction oc intruction =
   match intruction with
@@ -53,6 +56,7 @@ let print_instruction oc intruction =
   | Neg -> Printf.fprintf oc "lneg\n"
   | InvokeStatic f -> Printf.fprintf oc "invokestatic Method %s\n" f
   | Virtual v -> Printf.fprintf oc "invokevirtual Method %s\n" v
+  | GetStatic f -> Printf.fprintf oc "getstatic Field %s\n" f
 
 let rec print_instrs oc instrs =
   match instrs with

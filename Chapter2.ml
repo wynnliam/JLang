@@ -57,16 +57,23 @@ module EmitJasm =
     let rec do_exp exp =
       match exp with
       | JVar.Int i -> [Push (Imm i)]
+      | JVar.Var v -> [Load (Var v)]
       | JVar.Prim(op, args) ->
           let f = fun acc e -> (do_exp e) @ acc in
           let args' = List.fold_left f [] args in
           let op' = do_op op in
           args' @ op'
-      | _ -> assert false
-    (*Int of int64
-  | Prim of primop * exp list
-  | Var of var
-  | Let of var * exp * exp*)
+      | JVar.Let(v, e1, e2) ->
+          let e1' = do_exp e1 in
+          let v' = [Store(Var v)] in
+          let e2' = do_exp e2 in
+          e1' @ v' @ e2'
+
+    let emit_jasm expr =
+      let instrs = do_exp expr in
+      let (Var r) = Var(gensym "`result") in
+      let print_instrs =
+        [Store (Var r); 
 
     let do_program (JVar.Program(pinfo, expr)) = Program((), "main", do_exp expr)
 
