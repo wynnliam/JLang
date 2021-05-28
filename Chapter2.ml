@@ -45,6 +45,41 @@ module Uniquify =
        checker=check_program;}
   end (* Uniquify *) 
 
+module EmitJasm =
+  struct
+    open JasmInt
+    let do_program (JVar.Program(pinfo, expr)) = failwith "Barf!"
+
+    let env = ref Env.empty
+
+    let var_exists (v : string) (env : unit Env.t) =
+      match (Env.find_opt v env) with
+      | Some i -> ()
+      | None -> failwith "Variable not found!"
+      
+    let check_instr (instr : instr) =
+      match instr with
+      | Push (Var v) -> failwith "Cannot push Vars. Only Imms!"
+      | Load (Var v) ->
+          var_exists v !env;
+          instr
+      | Store (Var v) ->
+          env := Env.add v () !env;
+          instr
+      | _ -> instr
+
+    let check_program (Program (pinfo, lbl, instrs)) =
+      let instrs' = List.map check_instr instrs in
+      Util.print_env (fun _ _ -> ()) stdout !env;
+      Program((), lbl, instrs')
+
+    let pass : (unit JVar.program, unit JasmInt.program, unit JasmInt.program) pass =
+      {name="emit jasm";
+       transformer=do_program;
+       printer=print_program;
+       checker=check_program;}
+  end
+
 module RemoveComplexOperands = 
   struct
     open JVar
@@ -315,11 +350,12 @@ let emit_pass : ((int,unit) X86Int.program, (int,unit) X86Int.program, (int,unit
 let passes = 
      PCons(initial_pass,
      PCons(Uniquify.pass,
-     PCons(RemoveComplexOperands.pass,
+     PNil))
+     (*PCons(RemoveComplexOperands.pass,
      PCons(ExplicateControl.pass,
      PCons(SelectInstructions.pass,
      PCons(ChooseVariableIndex.pass,
-     PNil))))))
+     PNil))))))*)
      (*PCons(SelectInstructions.pass,
      PCons(AssignHomes.pass,
      PCons(PatchInstructions.pass,
