@@ -257,13 +257,14 @@ module ChooseVariableIndex =
       | _ -> instr
 
     let do_program (Program(env, lbl, instrs)) =
+      (* Also tells us how many locals we have *)
       let ind = ref 1 in
       let f = fun _ ->
         let r = !ind in
         ind := !ind + 1;
         r in
       let ind_env = Env.map f env in
-      Program((), lbl, List.map (do_instr ind_env) instrs)
+      Program(!ind, lbl, List.map (do_instr ind_env) instrs)
 
     let check_instr (instr : instr) =
       match instr with
@@ -274,11 +275,12 @@ module ChooseVariableIndex =
 
     let check_program (Program (pinfo, lbl, instrs)) =
       List.iter check_instr instrs;
+      Printf.fprintf stdout "num locals: %d\n" pinfo;
       Program(pinfo, lbl, instrs)
 
     let pass : ((unit Env.t) JasmInt.program,
-                unit JasmInt.program,
-                unit JasmInt.program) pass =
+                int JasmInt.program,
+                int JasmInt.program) pass =
     {name="choose variable index";
      transformer=do_program;
      printer=print_program;
