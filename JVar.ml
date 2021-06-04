@@ -9,6 +9,7 @@ type exp =
   | Var of var
   | Let of var * exp * exp
   | Assign of var * exp
+  | Print of var
 
 type 'info program = Program of 'info * exp
 
@@ -26,6 +27,7 @@ struct
     | SList[SSym "+";e1;e2] -> Prim(Add,[parse_exp e1; parse_exp e2])
     | SList[SSym "-";e1;e2] -> Prim(Add,[parse_exp e1; Prim(Neg,[parse_exp e2])])  (* "syntactic sugar" *)
     | SList[SSym ":=";SSym(x);e2] -> Assign(x, parse_exp e2)
+    | SList[SSym "print";SSym(x)] -> Print x
     | sexp -> (prerr_endline "Cannot parse expression:";
 	       Print.print stderr sexp;
 	       prerr_newline();
@@ -41,6 +43,7 @@ struct
     | Prim(Neg,[e]) -> SList[SSym "-"; print_exp e]
     | Prim(Add,[e1;e2]) -> SList[SSym "+"; print_exp e1; print_exp e2]
     | Assign(x,e) -> SList[SSym ":="; SSym x; print_exp e]
+    | Print x -> SList[SSym "print"; SSym x]
     (* there is no reliable way to "re-sugar" the subtraction operator *)
     | _ -> assert false
 	  
@@ -87,6 +90,11 @@ let rec check_exp (env: unit Env.t) = function
          raise CheckError)
       else
         check_exp env e
+   | Print x ->
+      if not (Env.mem x env) then
+        (Printf.eprintf "Checking error: unbound variable %s\n" x; flush stderr;
+         raise CheckError)
+      else ()
 	
 (* 'user' argument should be true if checking an initial program, where errors are user errors;
    later on, it should be false, since new errors are must be due to compiler internal errors. *) 
