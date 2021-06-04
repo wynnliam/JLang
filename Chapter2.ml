@@ -14,6 +14,7 @@ module Uniquify =
 	  Let(x', do_exp env e1, do_exp (Env.add x x' env) e2)
       | Prim (primop,args) ->
 	 Prim(primop, List.map (do_exp env) args)
+      | Assign(x, e) -> Assign(Env.find x env, do_exp env e)
 	    
     let do_program (Program(a,e)) =
       fresh := 0;
@@ -68,6 +69,9 @@ module EmitJasm =
           let v' = [Store(Var v)] in
           let e2' = do_exp e2 in
           e1' @ v' @ e2'
+      | JVar.Assign(v, e) ->
+          let e' = do_exp e in
+          e' @ [Store(Var v)]
 
     let emit_jasm expr =
       let instrs = do_exp expr in
