@@ -43,3 +43,24 @@ When `driver` is on your machine, you can run it with:
 
 This will run the driver on each JLang program in the `tests` directory.
 The `-d 2` flag will ask the driver to print out the code at each step.
+
+# On JLang
+I will now describe JLang's features and semantics.
+JLang has only one type: 64 bit integers. A JLang program is a single program
+that evaluates to a single 64 bit integer. An expression can be one
+of the following:
+
+* A single integer: `42`. Its value is the integer itself.
+* A Variable `v`. The value of the expression is the value of `v`.
+* `(read)`, reads a single integer. The value of this expression is the integer read in.
+* `(+ exp1 exp2)`, evaluates two expressions and adds them. The value is the sum of
+  the two expressions.
+* `(- exp)`, Negates an expression. The resulting integer is the value of this expression.
+* `(let v exp1 exp2)`, evaluates `exp1`, assigns it to `v`, and then evaluates `exp2` with
+  `v = exp1`, The value of this kind of expression is the result of evaluating `exp2`.
+* `(:= v exp)`, evaluates `exp` and assigns it to `v`. The value of the expression is
+  the new value of `v`.
+* `(print exp)`, Prints the value of `exp` to the commandline. The value of the expression
+  is 0.
+* `(seq exp1 exp2 ... expN)`, evaluates each sub expression in order. The value of this expression
+  will be the last expression evaluated: `expN`.
