@@ -59,7 +59,7 @@ module EmitJasm =
       | Primop.Read -> [InvokeStatic readn]
 
     let env = ref Env.empty
-    let next_var_index = ref 0
+    let next_var_index = ref 0L
 
     let var_exists (v : string) (env : unit Env.t) =
       match (Env.find_opt v env) with
@@ -71,13 +71,18 @@ module EmitJasm =
       | Some i -> failwith "Cannot add variable that already exists!"
       | None ->
           env := Env.add v (!next_var_index) (!env);
-          next_var_index := !next_var_index + 1;
+          next_var_index := Int64.add !next_var_index 1L;
           !next_var_index
+
+    let find_var (v : string) =
+      match (Env.find_opt v (!env)) with
+      | None -> failwith ("Undeclare variable" ^ v)
+      | Some i -> i
 
     let rec do_exp exp =
       match exp with
       | JVar.Int i -> [Push (Imm i)]
-      | JVar.Var v -> [Load (Var v)]
+      | JVar.Var v -> [Load (Imm (find_var v))]
       | JVar.Prim(op, args) ->
           let f = fun acc e -> (do_exp e) @ acc in
           let args' = List.fold_left f [] args in
@@ -85,13 +90,14 @@ module EmitJasm =
           args' @ op'
       | JVar.Let(v, e1, e2) ->
           let e1' = do_exp e1 in
-          let v' = [Store(Var v)] in
+          let v' = [Store(Imm(add_var v))] in
           let e2' = do_exp e2 in
           e1' @ v' @ e2'
       | JVar.Assign(v, e) ->
           let e' = do_exp e in
-          e' @ [Store(Var v); Load(Var v)]
-      | JVar.Print r -> [Load (Var r); InvokeStatic writn]
+          let i' = find_var v in
+          e' @ [Store(Imm i'); Load(Imm i')]
+      | JVar.Print r -> [Load (Imm (find_var r)); InvokeStatic writn]
       | JVar.Seq es ->
           let f = fun acc e -> acc @ (do_exp e) in
           List.fold_left f [] es
@@ -119,55 +125,12 @@ module EmitJasm =
       Program(!env, lbl, instrs')
 
     let pass : (unit JVar.program,
-                int Util.Env.t JasmInt.program,
-                int Util.Env.t JasmInt.program) pass =
+                Int64.t Util.Env.t JasmInt.program,
+                Int64.t Util.Env.t JasmInt.program) pass =
       {name="emit jasm";
        transformer=do_program;
        printer=print_program;
        checker=check_program;}
-  end
-
-module ChooseVariableIndex =
-  struct
-    open JasmInt
-    let get_index env var = Int64.of_int (Env.find var env)
-
-    let do_instr env instr = 
-      match instr with
-      | Push (Var v) -> Push (Imm (get_index env v))
-      | Load (Var v) -> Load (Imm (get_index env v))
-      | Store (Var v) -> Store (Imm (get_index env v))
-      | _ -> instr
-
-    let do_program (Program(env, lbl, instrs)) =
-      (* Also tells us how many locals we have *)
-      let ind = ref 1 in
-      let f = fun _ ->
-        let r = !ind in
-        ind := !ind + 1;
-        r in
-      let ind_env = Env.map f env in
-      Program(!ind, lbl, List.map (do_instr ind_env) instrs)
-
-    let check_instr (instr : instr) =
-      match instr with
-      | Push (Var v) -> failwith "Found a Var. Should be an int!"
-      | Load (Var v) -> failwith "Found a Var. Should be an int!"
-      | Store (Var v) -> failwith "Found a Var. Should be an int!"
-      | _ -> ()
-
-    let check_program (Program (pinfo, lbl, instrs)) =
-      List.iter check_instr instrs;
-      Printf.fprintf stdout "num locals: %d\n" pinfo;
-      Program(pinfo, lbl, instrs)
-
-    let pass : ((unit Env.t) JasmInt.program,
-                int JasmInt.program,
-                int JasmInt.program) pass =
-    {name="choose variable index";
-     transformer=do_program;
-     printer=print_program;
-     checker=check_program;}
   end
 
 (* This pass is always required: it does static checking on the source and can be used to obtain the
