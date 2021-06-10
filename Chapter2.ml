@@ -97,7 +97,7 @@ module EmitJasm =
           let e' = do_exp e in
           let i' = find_var v in
           e' @ [Store(Imm i'); Load(Imm i')]
-      | JVar.Print r -> [Load (Imm (find_var r)); InvokeStatic writn]
+      | JVar.Print r -> [Load (Imm (find_var r)); InvokeStatic writn; Push (Imm 0L)]
       | JVar.Seq es ->
           let f = fun acc e -> acc @ (do_exp e) in
           List.fold_left f [] es
