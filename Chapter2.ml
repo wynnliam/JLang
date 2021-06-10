@@ -59,11 +59,20 @@ module EmitJasm =
       | Primop.Read -> [InvokeStatic readn]
 
     let env = ref Env.empty
+    let next_var_index = ref 0
 
     let var_exists (v : string) (env : unit Env.t) =
       match (Env.find_opt v env) with
       | Some i -> ()
       | None -> failwith "Variable not found!"
+
+    let add_var (v : string) =
+      match (Env.find_opt v (!env)) with
+      | Some i -> failwith "Cannot add variable that already exists!"
+      | None ->
+          env := Env.add v (!next_var_index) (!env);
+          next_var_index := !next_var_index + 1;
+          !next_var_index
 
     let rec do_exp exp =
       match exp with
@@ -95,7 +104,8 @@ module EmitJasm =
       instrs (*@ print_instrs*)
 
     let do_program (JVar.Program(pinfo, expr)) =
-      Program((), "main", emit_jasm expr)
+      let expr' = emit_jasm expr in
+      Program(!env, "main", expr')
 
     let check_instr (instr : instr) =
       match instr with
@@ -108,7 +118,9 @@ module EmitJasm =
       let instrs' = List.map check_instr instrs in
       Program(!env, lbl, instrs')
 
-    let pass : (unit JVar.program, unit JasmInt.program, unit Util.Env.t JasmInt.program) pass =
+    let pass : (unit JVar.program,
+                int Util.Env.t JasmInt.program,
+                int Util.Env.t JasmInt.program) pass =
       {name="emit jasm";
        transformer=do_program;
        printer=print_program;
@@ -187,8 +199,7 @@ let passes =
      PCons(initial_pass,
      PCons(Uniquify.pass,
      PCons(EmitJasm.pass,
-     PCons(ChooseVariableIndex.pass,
-     PNil))))
+     PNil)))
      (*PCons(SelectInstructions.pass,
      PCons(AssignHomes.pass,
      PCons(PatchInstructions.pass,
