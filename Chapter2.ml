@@ -48,6 +48,7 @@ module Uniquify =
        checker=check_program;}
   end (* Uniquify *) 
 
+(* TODO: Remove pseudo-instruction *)
 module EmitJasm =
   struct
     open JasmInt
@@ -56,6 +57,13 @@ module EmitJasm =
       | Primop.Add -> [Add]
       | Primop.Neg -> [Neg]
       | Primop.Read -> [InvokeStatic readn]
+
+    let env = ref Env.empty
+
+    let var_exists (v : string) (env : unit Env.t) =
+      match (Env.find_opt v env) with
+      | Some i -> ()
+      | None -> failwith "Variable not found!"
 
     let rec do_exp exp =
       match exp with
@@ -73,12 +81,11 @@ module EmitJasm =
           e1' @ v' @ e2'
       | JVar.Assign(v, e) ->
           let e' = do_exp e in
-          e' @ [Store(Var v)]
+          e' @ [Store(Var v); Load(Var v)]
       | JVar.Print r -> [Load (Var r); InvokeStatic writn]
       | JVar.Seq es ->
           let f = fun acc e -> acc @ (do_exp e) in
           List.fold_left f [] es
-        
 
     let emit_jasm expr =
       let instrs = do_exp expr in
@@ -90,27 +97,15 @@ module EmitJasm =
     let do_program (JVar.Program(pinfo, expr)) =
       Program((), "main", emit_jasm expr)
 
-    let env = ref Env.empty
-
-    let var_exists (v : string) (env : unit Env.t) =
-      match (Env.find_opt v env) with
-      | Some i -> ()
-      | None -> failwith "Variable not found!"
-      
     let check_instr (instr : instr) =
       match instr with
       | Push (Var v) -> failwith "Cannot push Vars. Only Imms!"
-      | Load (Var v) ->
-          var_exists v !env;
-          instr
-      | Store (Var v) ->
-          env := Env.add v () !env;
-          instr
+      | Load (Var v) -> failwith "Cannot load Vars. Must be an index!"
+      | Store (Var v) -> failwith "Cannot store Vars. Must be an index!"
       | _ -> instr
 
     let check_program (Program (pinfo, lbl, instrs)) =
       let instrs' = List.map check_instr instrs in
-      Util.print_env (fun _ _ -> ()) stdout !env;
       Program(!env, lbl, instrs')
 
     let pass : (unit JVar.program, unit JasmInt.program, unit Util.Env.t JasmInt.program) pass =

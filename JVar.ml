@@ -8,6 +8,7 @@ type exp =
   | Prim of primop * exp list
   | Var of var
   | Let of var * exp * exp
+    (* Value is var after assign *)
   | Assign of var * exp
   | Print of var
   | Seq of exp list
