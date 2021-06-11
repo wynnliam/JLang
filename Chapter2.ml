@@ -99,7 +99,11 @@ module EmitJasm =
           e' @ [Store(Imm i'); Load(Imm i')]
       | JVar.Print r -> [Load (Imm (find_var r)); InvokeStatic writn; Push (Imm 0L)]
       | JVar.Seq es ->
-          let f = fun acc e -> acc @ (do_exp e) @ [Pop] in
+          let k = ref 0 in
+          let f = fun acc e ->
+            let pop = if !k = ((List.length es) - 1) then [] else [Pop] in
+            k := !k + 1;
+            acc @ (do_exp e) @ pop in
           List.fold_left f [] es
 
     let emit_jasm expr =
