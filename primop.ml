@@ -3,17 +3,20 @@
 open Util
 
 type primop =
-    Read
+  | Read
+  | Print
   | Neg
   | Add
 
 let arity = function
-    Read -> 0
+  | Read -> 0
+  | Print -> 1
   | Neg -> 1
   | Add -> 2
 
 let string_of_primop = function
-    Read -> "read"
+  | Read -> "read"
+  | Print -> "print"
   | Neg -> "-"
   | Add -> "+"
 
