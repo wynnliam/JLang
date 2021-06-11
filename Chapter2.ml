@@ -15,7 +15,6 @@ module Uniquify =
       | Prim (primop,args) ->
 	 Prim(primop, List.map (do_exp env) args)
       | Assign(x, e) -> Assign(Env.find x env, do_exp env e)
-      | Print x -> Print (Env.find x env)
       | Seq es -> Seq (List.map (do_exp env) es)
 	    
     let do_program (Program(a,e)) =
@@ -56,6 +55,7 @@ module EmitJasm =
       | Primop.Add -> [Add]
       | Primop.Neg -> [Neg]
       | Primop.Read -> [InvokeStatic readn]
+      | Primop.Print -> [InvokeStatic writn; Push (Imm 0L)]
 
     let env = ref Env.empty
     let next_var_index = ref 1L
@@ -97,7 +97,6 @@ module EmitJasm =
           let e' = do_exp e in
           let i' = find_var v in
           e' @ [Store(Imm i'); Load(Imm i')]
-      | JVar.Print r -> [Load (Imm (find_var r)); InvokeStatic writn; Push (Imm 0L)]
       | JVar.Seq es ->
           let k = ref 0 in
           let f = fun acc e ->
