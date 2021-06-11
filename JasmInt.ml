@@ -31,6 +31,8 @@ type instr =
     (* Pops an int off the stack, negates it, then pushes it back onto
        the stack *)
   | Neg
+    (* Pops an operand off the stack *)
+  | Pop
     (* Invokes a static method *)
   | InvokeStatic of string
     (* Invokes a virtual method *)
@@ -52,6 +54,7 @@ let print_instruction oc intruction =
   | Store (Var v) -> Printf.fprintf oc "lstore_%s\n" v
   | Add -> Printf.fprintf oc "ladd\n"
   | Neg -> Printf.fprintf oc "lneg\n"
+  | Pop -> Printf.fprintf oc "pop\n"
   | InvokeStatic f -> Printf.fprintf oc "invokestatic Method %s\n" f
   | Virtual v -> Printf.fprintf oc "invokevirtual Method %s\n" v
 

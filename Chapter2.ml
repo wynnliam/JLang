@@ -48,7 +48,6 @@ module Uniquify =
        checker=check_program;}
   end (* Uniquify *) 
 
-(* TODO: Remove pseudo-instruction *)
 module EmitJasm =
   struct
     open JasmInt
@@ -59,7 +58,7 @@ module EmitJasm =
       | Primop.Read -> [InvokeStatic readn]
 
     let env = ref Env.empty
-    let next_var_index = ref 0L
+    let next_var_index = ref 1L
 
     let var_exists (v : string) (env : unit Env.t) =
       match (Env.find_opt v env) with
@@ -70,9 +69,10 @@ module EmitJasm =
       match (Env.find_opt v (!env)) with
       | Some i -> failwith "Cannot add variable that already exists!"
       | None ->
-          env := Env.add v (!next_var_index) (!env);
+          let t = !next_var_index in
+          env := Env.add v t (!env);
           next_var_index := Int64.add !next_var_index 1L;
-          !next_var_index
+          t
 
     let find_var (v : string) =
       match (Env.find_opt v (!env)) with
@@ -99,7 +99,7 @@ module EmitJasm =
           e' @ [Store(Imm i'); Load(Imm i')]
       | JVar.Print r -> [Load (Imm (find_var r)); InvokeStatic writn; Push (Imm 0L)]
       | JVar.Seq es ->
-          let f = fun acc e -> acc @ (do_exp e) in
+          let f = fun acc e -> acc @ (do_exp e) @ [Pop] in
           List.fold_left f [] es
 
     let emit_jasm expr =
