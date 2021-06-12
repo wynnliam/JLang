@@ -43,7 +43,7 @@ When `driver` is on your machine, you can run it with:
 This will run the driver on each JLang program in the `tests` directory.
 The `-d 2` flag will ask the driver to print out the code at each step.
 
-# JLang Semantics
+## JLang Semantics
 I will now describe JLang's features and semantics.
 JLang has only one type: 64 bit integers. A JLang program is a single program
 that evaluates to a single 64 bit integer. An expression can be one
