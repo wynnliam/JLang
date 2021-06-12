@@ -13,6 +13,7 @@ module Uniquify =
       | Prim (primop,args) -> Prim(primop, List.map (do_exp env) args)
       | Assign(x, e) -> Assign(Env.find x env, do_exp env e)
       | Seq es -> Seq (List.map (do_exp env) es)
+      | If (cnd, thn, els) -> If(do_exp env cnd, do_exp env thn, do_exp env els)
 	    
     let do_program (Program(a,e)) =
       fresh := 0;
@@ -30,6 +31,13 @@ module Uniquify =
 	  check_exp e1;
 	  check_exp e2
       | Prim(_,args) -> List.iter check_exp args
+      | Assign(x, e) ->
+          if not (Env.mem x (!envr))then
+          (Printf.eprintf "Variable %s undeclared!\n" x;
+           failwith "Uniquify check failed");
+          check_exp e
+      | Seq es -> List.iter check_exp es
+      | If (cnd, thn, els) -> check_exp cnd; check_exp thn; check_exp els
       | _ -> ()
 
     let check_program (Program(_,e) as p) =

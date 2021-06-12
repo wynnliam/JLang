@@ -11,6 +11,7 @@ type exp =
     (* Value is var after assign *)
   | Assign of var * exp
   | Seq of exp list
+  | If of exp * exp * exp
 
 type 'info program = Program of 'info * exp
 
@@ -36,6 +37,7 @@ struct
     | SList[SSym ">";e1;e2] -> Prim(Compare GT,  [parse_exp e1; parse_exp e2])
     | SList[SSym ":=";SSym(x);e2] -> Assign(x, parse_exp e2)
     | SList(SSym "seq" :: es) -> Seq(List.map parse_exp es)
+    | SList[SSym "if";e1;e2;e3] -> If(parse_exp e1, parse_exp e2, parse_exp e3)
     | sexp -> (prerr_endline "Cannot parse expression:";
 	       Print.print stderr sexp;
 	       prerr_newline();
@@ -54,6 +56,7 @@ struct
     | Prim(Compare c, [e1;e2]) -> SList[SSym (string_of_comparison c); print_exp e1; print_exp e2]
     | Assign(x,e) -> SList[SSym ":="; SSym x; print_exp e]
     | Seq es -> SList (List.map print_exp es)
+    | If(cnd, thn, els) -> SList[SSym "if"; print_exp cnd; print_exp thn; print_exp els]
     (* there is no reliable way to "re-sugar" the subtraction operator *)
     | _ -> assert false
 	  
@@ -101,6 +104,7 @@ let rec check_exp (env: unit Env.t) = function
       else
         check_exp env e
   | Seq es -> List.iter (check_exp env) es; ()
+  | If(cnd,thn,els) -> check_exp env cnd; check_exp env thn; check_exp env els; ()
 	
 (* 'user' argument should be true if checking an initial program, where errors are user errors;
    later on, it should be false, since new errors are must be due to compiler internal errors. *) 
