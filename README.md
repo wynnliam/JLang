@@ -67,5 +67,5 @@ of the following:
 
 (From JIf)
 * A simple comparison: `(< x y)` equals 1 if the comparison is true, and 0 if it is false
-* An if statement: `(if (< x y) exp1 exp2)` if the comparison is true, the result is evaluting `exp1`,
-  otherwise it is the result of evaluating `exp2`.
+* An if statement: `(if exp0 exp1 exp2)` evaluates `exp0`. If it is not 0 then the result is `exp1`, and if
+  it is 0 then the result is `exp2`.
