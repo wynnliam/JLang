@@ -178,9 +178,9 @@ let initial_pass : (unit JIf.program, unit JIf.program, unit JIf.program) pass =
  *)
 let passes = 
      PCons(initial_pass,
-     PCons(Uniquify.pass,
-     PCons(EmitJasm.pass,
-     PNil)))
+     (*PCons(Uniquify.pass,
+     PCons(EmitJasm.pass,*)
+     PNil)
      (*PCons(SelectInstructions.pass,
      PCons(AssignHomes.pass,
      PCons(PatchInstructions.pass,
