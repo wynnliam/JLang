@@ -2,7 +2,7 @@ open Util
 
 module Uniquify =
   struct
-    open JVar
+    open JIf
 
     let rec do_exp env = function
 	Var x ->
@@ -38,9 +38,9 @@ module Uniquify =
     let check_program (Program(_,e) as p) =
       envr := Env.empty;
       check_exp e;
-      JVar.check_program false p
+      JIf.check_program false p
 
-    let pass : (unit JVar.program, unit JVar.program, unit JVar.program) pass =
+    let pass : (unit JIf.program, unit JIf.program, unit JIf.program) pass =
       {name="uniquify";
        transformer=do_program;
        printer=print_program;
@@ -81,23 +81,23 @@ module EmitJasm =
 
     let rec do_exp exp =
       match exp with
-      | JVar.Int i -> [Push (Imm i)]
-      | JVar.Var v -> [Load (Imm (find_var v))]
-      | JVar.Prim(op, args) ->
+      | JIf.Int i -> [Push (Imm i)]
+      | JIf.Var v -> [Load (Imm (find_var v))]
+      | JIf.Prim(op, args) ->
           let f = fun acc e -> (do_exp e) @ acc in
           let args' = List.fold_left f [] args in
           let op' = do_op op in
           args' @ op'
-      | JVar.Let(v, e1, e2) ->
+      | JIf.Let(v, e1, e2) ->
           let e1' = do_exp e1 in
           let v' = [Store(Imm(add_var v))] in
           let e2' = do_exp e2 in
           e1' @ v' @ e2'
-      | JVar.Assign(v, e) ->
+      | JIf.Assign(v, e) ->
           let e' = do_exp e in
           let i' = find_var v in
           e' @ [Store(Imm i'); Load(Imm i')]
-      | JVar.Seq es ->
+      | JIf.Seq es ->
           let k = ref 0 in
           let f = fun acc e ->
             let pop = if !k = ((List.length es) - 1) then [] else [Pop] in
@@ -112,7 +112,7 @@ module EmitJasm =
         [Store (Var r); Load (Var r); InvokeStatic writn] in
       instrs (*@ print_instrs*)
 
-    let do_program (JVar.Program(pinfo, expr)) =
+    let do_program (JIf.Program(pinfo, expr)) =
       let expr' = emit_jasm expr in
       Program(!env, "main", expr')
 
@@ -127,7 +127,7 @@ module EmitJasm =
       let instrs' = List.map check_instr instrs in
       Program(!env, lbl, instrs')
 
-    let pass : (unit JVar.program,
+    let pass : (unit JIf.program,
                 Int64.t Util.Env.t JasmInt.program,
                 Int64.t Util.Env.t JasmInt.program) pass =
       {name="emit jasm";
@@ -138,11 +138,11 @@ module EmitJasm =
 
 (* This pass is always required: it does static checking on the source and can be used to obtain the
    "correct" result of evaluation. *)
-let initial_pass : (unit JVar.program, unit JVar.program, unit JVar.program) pass = 
+let initial_pass : (unit JIf.program, unit JIf.program, unit JIf.program) pass = 
   {name="source checking";
    transformer=(fun p -> p);
-   printer=JVar.print_program;	      
-   checker=JVar.check_program true;}
+   printer=JIf.print_program;	      
+   checker=JIf.check_program true;}
 
 (* This final pass is suitable for testing the generated X86 code "for real." *)
 let execute_pass : ((int,unit) X86Int.program, (int,unit) X86Int.program, (int,unit) X86Int.program) pass =  
@@ -179,10 +179,10 @@ let passes =
 let _ = Util.debug_level := 0
 
 (* Suitable for top-level use. *)
-let test_string = Util.test_string true false JVar.parse_from_string passes 
+let test_string = Util.test_string true false JIf.parse_from_string passes 
 
 (* Suitable for bulk testing with comparison between first and last pass results. *)
-let test_files = Util.test_files false true JVar.parse_from_channel passes 
+let test_files = Util.test_files false true JIf.parse_from_channel passes 
 
 (* Packaging interpreter as a command line executable.
    Run this, as, e.g. 
