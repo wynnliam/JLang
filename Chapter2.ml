@@ -80,6 +80,7 @@ module EmitJasm =
       match exp with
       | JIf.Int i -> [Push (Imm i)]
       | JIf.Var v -> [Load (Imm (find_var v))]
+      | JIf.Prim(Compare _, _) -> failwith "TODO: Add branching!"
       | JIf.Prim(op, args) ->
           let f = fun acc e -> (do_exp e) @ acc in
           let args' = List.fold_left f [] args in
