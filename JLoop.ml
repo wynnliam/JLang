@@ -57,7 +57,7 @@ struct
     | Prim(Print, [e]) -> SList[SSym "print"; print_exp e]
     | Prim(Compare c, [e1;e2]) -> SList[SSym (string_of_comparison c); print_exp e1; print_exp e2]
     | Assign(x,e) -> SList[SSym ":="; SSym x; print_exp e]
-    | Seq es -> SList (List.map print_exp es)
+    | Seq es -> SList (SSym "seq" :: List.map print_exp es)
     | If(cnd, thn, els) -> SList[SSym "if"; print_exp cnd; print_exp thn; print_exp els]
     | While(cnd, bdy) -> SList[SSym "while"; print_exp cnd; print_exp bdy]
     (* there is no reliable way to "re-sugar" the subtraction operator *)
