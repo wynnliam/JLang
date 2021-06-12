@@ -2,7 +2,7 @@ open Util
 
 module Uniquify =
   struct
-    open JIf
+    open JLoop
 
     let rec do_exp env = function
 	    | Var x -> Var (Env.find x env)
@@ -43,9 +43,9 @@ module Uniquify =
     let check_program (Program(_,e) as p) =
       envr := Env.empty;
       check_exp e;
-      JIf.check_program false p
+      JLoop.check_program false p
 
-    let pass : (unit JIf.program, unit JIf.program, unit JIf.program) pass =
+    let pass : (unit JLoop.program, unit JLoop.program, unit JLoop.program) pass =
       {name="uniquify";
        transformer=do_program;
        printer=print_program;
@@ -86,9 +86,9 @@ module EmitJasm =
 
     let rec do_exp exp =
       match exp with
-      | JIf.Int i -> [Push (Imm i)]
-      | JIf.Var v -> [Load (Imm (find_var v))]
-      | JIf.Prim(Compare cmp, [exp1; exp2]) ->
+      | JLoop.Int i -> [Push (Imm i)]
+      | JLoop.Var v -> [Load (Imm (find_var v))]
+      | JLoop.Prim(Compare cmp, [exp1; exp2]) ->
           let lblthn = genlbl "Lcmpt" in
           let lblels = genlbl "Lcmpf" in
           let lbldon = genlbl "Lcmpd" in
@@ -98,28 +98,28 @@ module EmitJasm =
           let exp1' = do_exp exp1 in
           let exp2' = do_exp exp2 in
           exp1' @ exp2' @ [Cmp (cmp, lblthn, lblels)] @ thnblk @ elsblk @ donblk
-      | JIf.Prim(op, args) ->
+      | JLoop.Prim(op, args) ->
           let f = fun acc e -> (do_exp e) @ acc in
           let args' = List.fold_left f [] args in
           let op' = do_op op in
           args' @ op'
-      | JIf.Let(v, e1, e2) ->
+      | JLoop.Let(v, e1, e2) ->
           let e1' = do_exp e1 in
           let v' = [Store(Imm(add_var v))] in
           let e2' = do_exp e2 in
           e1' @ v' @ e2'
-      | JIf.Assign(v, e) ->
+      | JLoop.Assign(v, e) ->
           let e' = do_exp e in
           let i' = find_var v in
           e' @ [Store(Imm i'); Load(Imm i')]
-      | JIf.Seq es ->
+      | JLoop.Seq es ->
           let k = ref 0 in
           let f = fun acc e ->
             let pop = if !k = ((List.length es) - 1) then [] else [Pop] in
             k := !k + 1;
             acc @ (do_exp e) @ pop in
           List.fold_left f [] es
-      | JIf.If (cnd,thn,els) ->
+      | JLoop.If (cnd,thn,els) ->
           let lblthn = genlbl "Lthn" in
           let lblels = genlbl "Lels" in
           let lbldon = genlbl "Ldon" in
@@ -139,7 +139,7 @@ module EmitJasm =
           let f = fun v p acc -> acc @ [Push (Imm 0l); Store (Imm p)] in
           (Env.fold f env []) @ [Label ("Lmain", Full n)]
 
-    let do_program (JIf.Program(pinfo, expr)) =
+    let do_program (JLoop.Program(pinfo, expr)) =
       fresh := 0;
       env := Env.empty;
       let expr' = emit_jasm expr in
@@ -156,7 +156,7 @@ module EmitJasm =
       let instrs' = List.map check_instr instrs in
       Program(!env, lbl, instrs')
 
-    let pass : (unit JIf.program,
+    let pass : (unit JLoop.program,
                 Int32.t Util.Env.t JasmIf.program,
                 Int32.t Util.Env.t JasmIf.program) pass =
       {name="emit jasm";
@@ -167,11 +167,11 @@ module EmitJasm =
 
 (* This pass is always required: it does static checking on the source and can be used to obtain the
    "correct" result of evaluation. *)
-let initial_pass : (unit JIf.program, unit JIf.program, unit JIf.program) pass = 
+let initial_pass : (unit JLoop.program, unit JLoop.program, unit JLoop.program) pass = 
   {name="source checking";
    transformer=(fun p -> p);
-   printer=JIf.print_program;	      
-   checker=JIf.check_program true;}
+   printer=JLoop.print_program;	      
+   checker=JLoop.check_program true;}
 
 (* Define sequence of passes for this Chapter.
    Adjust this as you implement more passes.
@@ -194,10 +194,10 @@ let passes =
 let _ = Util.debug_level := 0
 
 (* Suitable for top-level use. *)
-let test_string = Util.test_string true false JIf.parse_from_string passes 
+let test_string = Util.test_string true false JLoop.parse_from_string passes 
 
 (* Suitable for bulk testing with comparison between first and last pass results. *)
-let test_files = Util.test_files false true JIf.parse_from_channel passes 
+let test_files = Util.test_files false true JLoop.parse_from_channel passes 
 
 (* Packaging interpreter as a command line executable.
    Run this, as, e.g. 
