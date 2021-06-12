@@ -2,23 +2,40 @@
 
 open Util
 
+type comparison =
+  | LT (* Less than *)
+  | LE (* Less than or equal *)
+  | EQ (* Equal *)
+  | GE (* Greater than or equal *)
+  | GT (* Greater than *)
+
 type primop =
   | Read
   | Print
   | Neg
   | Add
+  | Compare of comparison
 
 let arity = function
   | Read -> 0
   | Print -> 1
   | Neg -> 1
   | Add -> 2
+  | Compare _ -> 2
+
+let string_of_comparison = function
+  | LT -> "<"
+  | LE -> "<="
+  | EQ -> "="
+  | GE -> ">="
+  | GT -> ">"
 
 let string_of_primop = function
   | Read -> "read"
   | Print -> "print"
   | Neg -> "-"
   | Add -> "+"
+  | Compare c -> string_of_comparison c
 
 let checkfail s = failwith ("Primop check failure: " ^ s)
 
