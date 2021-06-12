@@ -4,7 +4,7 @@ This compiler is written in OCaml. The goal of this language
 is to integrate it into the [OpenJDK ASM Toolset](https://github.com/openjdk/asmtools).
 
 ## What are the features of JLang?
-(Current version: JLoop; Previous version is [JIf](./READMEJIf.md))
+(Current version: JLoop; Previous version is [JIf](./docs/READMEJIf.md))
 
 In addition to integer variables, sequences, rudimentary I/O, comparisons and if statements,
 "JLoop" supports the following:
