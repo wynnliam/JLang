@@ -9,7 +9,7 @@ is to integrate it into the [OpenJDK ASM Toolset](https://github.com/openjdk/asm
 In addition to integer variables, sequences, rudimentary I/O,
 "JIf" supports the following:
 
-* Simple integer comparisons (<, <=, =, >, >=)
+* Simple integer comparisons (<, <=, =, !=, >=, >)
 * Simple if statements (see below for their semantics)
 
 
