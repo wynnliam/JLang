@@ -14,7 +14,7 @@ open Util
 *)
 
 type arg =
-  | Imm of Int64.t
+  | Imm of Int32.t
   | Var of string
 
 type instr = 
@@ -46,14 +46,14 @@ let writn = "read_int.write:\"(I)V\";"
 
 let print_instruction oc intruction =
   match intruction with
-  | Push (Imm i) -> Printf.fprintf oc "lconst_%d\n" (Int64.to_int i)
-  | Push (Var v) -> Printf.fprintf oc "lconst_%s\n" v
-  | Load (Imm i) -> Printf.fprintf oc "lload_%d\n" (Int64.to_int i)
-  | Load (Var v) -> Printf.fprintf oc "lload_%s\n" v
-  | Store (Imm i) -> Printf.fprintf oc "lstore_%l\n" (Int64.to_int i)
-  | Store (Var v) -> Printf.fprintf oc "lstore_%s\n" v
-  | Add -> Printf.fprintf oc "ladd\n"
-  | Neg -> Printf.fprintf oc "lneg\n"
+  | Push (Imm i) -> Printf.fprintf oc "bipush %d\n" (Int32.to_int i)
+  | Push (Var v) -> Printf.fprintf oc "iload_%s\n" v
+  | Load (Imm i) -> Printf.fprintf oc "iload_%d\n" (Int32.to_int i)
+  | Load (Var v) -> Printf.fprintf oc "iload_%s\n" v
+  | Store (Imm i) -> Printf.fprintf oc "istore_%l\n" (Int32.to_int i)
+  | Store (Var v) -> Printf.fprintf oc "istore_%s\n" v
+  | Add -> Printf.fprintf oc "iadd\n"
+  | Neg -> Printf.fprintf oc "ineg\n"
   | Pop -> Printf.fprintf oc "pop\n"
   | InvokeStatic f -> Printf.fprintf oc "invokestatic Method %s\n" f
   | Virtual v -> Printf.fprintf oc "invokevirtual Method %s\n" v

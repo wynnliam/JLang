@@ -52,10 +52,10 @@ module EmitJasm =
       | Primop.Add -> [Add]
       | Primop.Neg -> [Neg]
       | Primop.Read -> [InvokeStatic readn]
-      | Primop.Print -> [InvokeStatic writn; Push (Imm 0L)]
+      | Primop.Print -> [InvokeStatic writn; Push (Imm 0l)]
 
     let env = ref Env.empty
-    let next_var_index = ref 1L
+    let next_var_index = ref 1l
 
     let var_exists (v : string) (env : unit Env.t) =
       match (Env.find_opt v env) with
@@ -68,7 +68,7 @@ module EmitJasm =
       | None ->
           let t = !next_var_index in
           env := Env.add v t (!env);
-          next_var_index := Int64.add !next_var_index 1L;
+          next_var_index := Int32.add !next_var_index 1l;
           t
 
     let find_var (v : string) =
@@ -125,8 +125,8 @@ module EmitJasm =
       Program(!env, lbl, instrs')
 
     let pass : (unit JIf.program,
-                Int64.t Util.Env.t JasmInt.program,
-                Int64.t Util.Env.t JasmInt.program) pass =
+                Int32.t Util.Env.t JasmInt.program,
+                Int32.t Util.Env.t JasmInt.program) pass =
       {name="emit jasm";
        transformer=do_program;
        printer=print_program;
