@@ -46,7 +46,7 @@ module Uniquify =
 
 module EmitJasm =
   struct
-    open JasmInt
+    open JasmIf
     let do_op op =
       match op with
       | Primop.Add -> [Add]
@@ -122,8 +122,8 @@ module EmitJasm =
       Program(!env, lbl, instrs')
 
     let pass : (unit JIf.program,
-                Int32.t Util.Env.t JasmInt.program,
-                Int32.t Util.Env.t JasmInt.program) pass =
+                Int32.t Util.Env.t JasmIf.program,
+                Int32.t Util.Env.t JasmIf.program) pass =
       {name="emit jasm";
        transformer=do_program;
        printer=print_program;
