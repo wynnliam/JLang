@@ -40,27 +40,27 @@ let writn = "read_int.write:\"(I)V\";"
 
 let string_of_stack_frame sf =
   match sf with
-  | Same -> "stack_frame_type: same;"
+  | Same -> "stack_frame_type same"
   | Append n ->
       let cnt = take 0 (n - 1) in
-      let cnt' = List.map (fun i -> if i = (n - 1) then "int;" else "int, ") cnt in
-      List.fold_left (fun acc next -> acc ^ next) "stack_frame_type: append;\nlocals_map " cnt'
-  | Stack1 -> "stack_frame_type: stack1;\nstack_map int"
+      let cnt' = List.map (fun i -> if i = (n - 1) then "int" else "int, ") cnt in
+      List.fold_left (fun acc next -> acc ^ next) "stack_frame_type append;\nlocals_map " cnt'
+  | Stack1 -> "stack_frame_type stack1;\nstack_map int"
 
 let print_instruction oc intruction =
   match intruction with
-  | Push (Imm i) -> Printf.fprintf oc "ldc int %d\n" (Int32.to_int i)
-  | Push (Var v) -> Printf.fprintf oc "iload_%s\n" v
-  | Load (Imm i) -> Printf.fprintf oc "iload_%d\n" (Int32.to_int i)
-  | Load (Var v) -> Printf.fprintf oc "iload_%s\n" v
-  | Store (Imm i) -> Printf.fprintf oc "istore_%l\n" (Int32.to_int i)
-  | Store (Var v) -> Printf.fprintf oc "istore_%s\n" v
-  | Add -> Printf.fprintf oc "iadd\n"
-  | Neg -> Printf.fprintf oc "ineg\n"
-  | Pop -> Printf.fprintf oc "pop\n"
-  | InvokeStatic f -> Printf.fprintf oc "invokestatic Method %s\n" f
-  | Virtual v -> Printf.fprintf oc "invokevirtual Method %s\n" v
-  | Label (lbl, sf) -> Printf.fprintf oc "%s:\n%s" lbl (string_of_stack_frame sf)
+  | Push (Imm i) -> Printf.fprintf oc "ldc int %d;\n" (Int32.to_int i)
+  | Push (Var v) -> Printf.fprintf oc "iload_%s;\n" v
+  | Load (Imm i) -> Printf.fprintf oc "iload_%d;\n" (Int32.to_int i)
+  | Load (Var v) -> Printf.fprintf oc "iload_%s;\n" v
+  | Store (Imm i) -> Printf.fprintf oc "istore_%l;\n" (Int32.to_int i)
+  | Store (Var v) -> Printf.fprintf oc "istore_%s;\n" v
+  | Add -> Printf.fprintf oc "iadd;\n"
+  | Neg -> Printf.fprintf oc "ineg;\n"
+  | Pop -> Printf.fprintf oc "pop;\n"
+  | InvokeStatic f -> Printf.fprintf oc "invokestatic Method %s;\n" f
+  | Virtual v -> Printf.fprintf oc "invokevirtual Method %s;\n" v
+  | Label (lbl, sf) -> Printf.fprintf oc "%s:\n%s;\n" lbl (string_of_stack_frame sf)
 
 let rec print_instrs oc instrs =
   match instrs with

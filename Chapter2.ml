@@ -105,10 +105,18 @@ module EmitJasm =
 
     let emit_jasm expr = do_exp expr
 
+    let compute_intro env =
+      let cnt = Env.cardinal env in
+      match cnt with
+      | 0 -> [Label ("Lmain", Same)]
+      | n ->
+          let f = fun v p acc -> acc @ [Push (Imm 0l); Store (Imm p)] in
+          (Env.fold f env []) @ [Label ("Lmain", Append n)]
+
     let do_program (JIf.Program(pinfo, expr)) =
       env := Env.empty;
       let expr' = emit_jasm expr in
-      Program(!env, "main", expr')
+      Program(!env, "main", (compute_intro !env) @ expr')
 
     let check_instr (instr : instr) =
       match instr with
