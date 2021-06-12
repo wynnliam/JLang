@@ -32,6 +32,8 @@ type instr =
     (* Invokes a virtual method *)
   | Virtual of string
   | Label of label * stack_frame
+    (* End of a program *)
+  | Return
 
 type 'pinfo program = Program of 'pinfo * label * instr list
 
@@ -61,6 +63,7 @@ let print_instruction oc intruction =
   | InvokeStatic f -> Printf.fprintf oc "invokestatic Method %s;\n" f
   | Virtual v -> Printf.fprintf oc "invokevirtual Method %s;\n" v
   | Label (lbl, sf) -> Printf.fprintf oc "%s:\n%s;\n" lbl (string_of_stack_frame sf)
+  | Return -> Printf.fprintf oc "return;\n"
 
 let rec print_instrs oc instrs =
   match instrs with

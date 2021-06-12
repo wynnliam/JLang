@@ -116,7 +116,7 @@ module EmitJasm =
     let do_program (JIf.Program(pinfo, expr)) =
       env := Env.empty;
       let expr' = emit_jasm expr in
-      Program(!env, "main", (compute_intro !env) @ expr')
+      Program(!env, "main", (compute_intro !env) @ expr' @ [Return])
 
     let check_instr (instr : instr) =
       match instr with
