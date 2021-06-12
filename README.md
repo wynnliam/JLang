@@ -12,6 +12,9 @@ JLang is a very minimal language. Currently it supports:
 * Integer variables
 * Integer addition and subtraction
 * Reading integers from the command-line
+* Printing integers to the command-line
+* Sequences of statements
+* Reassigning integer values
 
 
 ## How does this compiler work?
