@@ -5,15 +5,12 @@ module Uniquify =
     open JIf
 
     let rec do_exp env = function
-	Var x ->
-	  Var (Env.find x env)
-      | Int n ->
-	  Int n
+	    | Var x -> Var (Env.find x env)
+      | Int n -> Int n
       | Let (x,e1,e2) ->
-	  let x' = gensym x in
-	  Let(x', do_exp env e1, do_exp (Env.add x x' env) e2)
-      | Prim (primop,args) ->
-	 Prim(primop, List.map (do_exp env) args)
+	        let x' = gensym x in
+	        Let(x', do_exp env e1, do_exp (Env.add x x' env) e2)
+      | Prim (primop,args) -> Prim(primop, List.map (do_exp env) args)
       | Assign(x, e) -> Assign(Env.find x env, do_exp env e)
       | Seq es -> Seq (List.map (do_exp env) es)
 	    
@@ -163,9 +160,9 @@ let emit_pass : ((int,unit) X86Int.program, (int,unit) X86Int.program, (int,unit
  *)
 let passes = 
      PCons(initial_pass,
-     (*PCons(Uniquify.pass,
-     PCons(EmitJasm.pass,*)
-     PNil)
+     PCons(Uniquify.pass,
+     (*PCons(EmitJasm.pass,*)
+     PNil))
      (*PCons(SelectInstructions.pass,
      PCons(AssignHomes.pass,
      PCons(PatchInstructions.pass,
