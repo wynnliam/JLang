@@ -31,6 +31,7 @@ struct
     | SList[SSym "<";e1;e2] -> Prim(Compare LT,  [parse_exp e1; parse_exp e2])
     | SList[SSym "<=";e1;e2] -> Prim(Compare LE, [parse_exp e1; parse_exp e2])
     | SList[SSym "=";e1;e2] -> Prim(Compare EQ,  [parse_exp e1; parse_exp e2])
+    | SList[SSym "!=";e1;e2] -> Prim(Compare NE, [parse_exp e1; parse_exp e2])
     | SList[SSym ">=";e1;e2] -> Prim(Compare GE, [parse_exp e1; parse_exp e2])
     | SList[SSym ">";e1;e2] -> Prim(Compare GT,  [parse_exp e1; parse_exp e2])
     | SList[SSym ":=";SSym(x);e2] -> Assign(x, parse_exp e2)

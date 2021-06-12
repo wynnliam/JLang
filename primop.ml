@@ -6,6 +6,7 @@ type comparison =
   | LT (* Less than *)
   | LE (* Less than or equal *)
   | EQ (* Equal *)
+  | NE (* Not equal *)
   | GE (* Greater than or equal *)
   | GT (* Greater than *)
 
@@ -27,6 +28,7 @@ let string_of_comparison = function
   | LT -> "<"
   | LE -> "<="
   | EQ -> "="
+  | NE -> "!="
   | GE -> ">="
   | GT -> ">"
 

@@ -1,22 +1,57 @@
-Testing: ./tests/test_simple_cmp.j
+Testing: ./tests/test_cmp.j
 PASS: source checking
 Raw pass result:
-(print 
- (= 42 10))
+(let x (read) 
+ (let y (read) 
+  (
+   (print 
+    (< x y)) 
+   (print 
+    (<= x y)) 
+   (print 
+    (= x y)) 
+   (print 
+    (>= x y)) 
+   (print 
+    (> x y)) 
+   (print 
+    (!= x y)))))
 Checking...
 PASS: uniquify
 Raw pass result:
-(print 
- (= 42 10))
+(let x.1 (read) 
+ (let y.2 (read) 
+  (
+   (print 
+    (< x.1 y.2)) 
+   (print 
+    (<= x.1 y.2)) 
+   (print 
+    (= x.1 y.2)) 
+   (print 
+    (>= x.1 y.2)) 
+   (print 
+    (> x.1 y.2)) 
+   (print 
+    (!= x.1 y.2)))))
 Checking...
 PASS: emit jasm
 Raw pass result:
 main:
+ldc int 0;
+istore_1;
+ldc int 0;
+istore_2;
 Lmain:
-stack_frame_type same;
-ldc int 42;
-ldc int 10;
-if_icmpeq LLcmpt1;
+stack_frame_type append;
+locals_map int, int;
+invokestatic Method read_int.read:"()I";
+istore_1;
+invokestatic Method read_int.read:"()I";
+istore_2;
+iload_1;
+iload_2;
+if_icmplt LLcmpt1;
 goto LLcmpf2;
 LLcmpt1:
 stack_frame_type same;
@@ -27,6 +62,96 @@ stack_frame_type same;
 ldc int 0;
 goto LLcmpd3;
 LLcmpd3:
+stack_frame_type stack1;
+stack_map int;
+invokestatic Method read_int.write:"(I)V";
+ldc int 0;
+pop;
+iload_1;
+iload_2;
+if_icmple LLcmpt4;
+goto LLcmpf5;
+LLcmpt4:
+stack_frame_type same;
+ldc int 1;
+goto LLcmpd6;
+LLcmpf5:
+stack_frame_type same;
+ldc int 0;
+goto LLcmpd6;
+LLcmpd6:
+stack_frame_type stack1;
+stack_map int;
+invokestatic Method read_int.write:"(I)V";
+ldc int 0;
+pop;
+iload_1;
+iload_2;
+if_icmpeq LLcmpt7;
+goto LLcmpf8;
+LLcmpt7:
+stack_frame_type same;
+ldc int 1;
+goto LLcmpd9;
+LLcmpf8:
+stack_frame_type same;
+ldc int 0;
+goto LLcmpd9;
+LLcmpd9:
+stack_frame_type stack1;
+stack_map int;
+invokestatic Method read_int.write:"(I)V";
+ldc int 0;
+pop;
+iload_1;
+iload_2;
+if_icmpge LLcmpt10;
+goto LLcmpf11;
+LLcmpt10:
+stack_frame_type same;
+ldc int 1;
+goto LLcmpd12;
+LLcmpf11:
+stack_frame_type same;
+ldc int 0;
+goto LLcmpd12;
+LLcmpd12:
+stack_frame_type stack1;
+stack_map int;
+invokestatic Method read_int.write:"(I)V";
+ldc int 0;
+pop;
+iload_1;
+iload_2;
+if_icmpgt LLcmpt13;
+goto LLcmpf14;
+LLcmpt13:
+stack_frame_type same;
+ldc int 1;
+goto LLcmpd15;
+LLcmpf14:
+stack_frame_type same;
+ldc int 0;
+goto LLcmpd15;
+LLcmpd15:
+stack_frame_type stack1;
+stack_map int;
+invokestatic Method read_int.write:"(I)V";
+ldc int 0;
+pop;
+iload_1;
+iload_2;
+if_icmpne LLcmpt16;
+goto LLcmpf17;
+LLcmpt16:
+stack_frame_type same;
+ldc int 1;
+goto LLcmpd18;
+LLcmpf17:
+stack_frame_type same;
+ldc int 0;
+goto LLcmpd18;
+LLcmpd18:
 stack_frame_type stack1;
 stack_map int;
 invokestatic Method read_int.write:"(I)V";
