@@ -48,6 +48,6 @@ let check_primop (op:primop) (args:'a list) =
 let interp_primop (op:primop) (args: value list) : value = 
   match op,args with
     Read,[] -> read_int()
-  | Neg,[v] -> Int64.neg v
-  | Add,[v1;v2] -> Int64.add v1 v2
+  | Neg,[v] -> Int32.neg v
+  | Add,[v1;v2] -> Int32.add v1 v2
   | _,_ -> assert false  (* arity mismatch *)
