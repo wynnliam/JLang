@@ -102,14 +102,10 @@ module EmitJasm =
             acc @ (do_exp e) @ pop in
           List.fold_left f [] es
 
-    let emit_jasm expr =
-      let instrs = do_exp expr in
-      let r = gensym "`result" in
-      let print_instrs =
-        [Store (Var r); Load (Var r); InvokeStatic writn] in
-      instrs (*@ print_instrs*)
+    let emit_jasm expr = do_exp expr
 
     let do_program (JIf.Program(pinfo, expr)) =
+      env := Env.empty;
       let expr' = emit_jasm expr in
       Program(!env, "main", expr')
 
@@ -147,8 +143,8 @@ let initial_pass : (unit JIf.program, unit JIf.program, unit JIf.program) pass =
 let passes = 
      PCons(initial_pass,
      PCons(Uniquify.pass,
-     (*PCons(EmitJasm.pass,*)
-     PNil))
+     PCons(EmitJasm.pass,
+     PNil)))
      (*PCons(SelectInstructions.pass,
      PCons(AssignHomes.pass,
      PCons(PatchInstructions.pass,
