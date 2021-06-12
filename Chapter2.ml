@@ -141,20 +141,6 @@ let initial_pass : (unit JIf.program, unit JIf.program, unit JIf.program) pass =
    printer=JIf.print_program;	      
    checker=JIf.check_program true;}
 
-(* This final pass is suitable for testing the generated X86 code "for real." *)
-let execute_pass : ((int,unit) X86Int.program, (int,unit) X86Int.program, (int,unit) X86Int.program) pass =  
-  {name="emit, assemble, link, run";
-   transformer=(fun p -> p);
-   printer=(fun oc p -> ());
-   checker=(fun p -> p);}
-
-(* An alternative final pass that just emits assembly code to a .s file *)
-let emit_pass : ((int,unit) X86Int.program, (int,unit) X86Int.program, (int,unit) X86Int.program) pass =  
-  {name="emit";
-   transformer=(fun p -> p);
-   printer=(fun oc p -> ());
-   checker=(fun p -> p);}
-
 (* Define sequence of passes for this Chapter.
    Adjust this as you implement more passes.
  *)
