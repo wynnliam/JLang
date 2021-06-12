@@ -4,12 +4,14 @@ This compiler is written in OCaml. The goal of this language
 is to integrate it into the [OpenJDK ASM Toolset](https://github.com/openjdk/asmtools).
 
 ## What are the features of JLang?
-(Current version: JLoop; Previous version is [JIf](./READMEJIf.md))
+(Current version: JIf; Previous version is [JVar](./READMEJVar.md))
 
-In addition to integer variables, sequences, rudimentary I/O, comparisons and if statements,
-"JLoop" supports the following:
+In addition to integer variables, sequences, rudimentary I/O,
+"JIf" supports the following:
 
-* Simple while loops
+* Simple integer comparisons (<, <=, =, !=, >=, >)
+* Simple if statements (see below for their semantics)
+
 
 ## How does this compiler work?
 This compiler uses the [nanopass approach](https://github.com/IUCompilerCourse/Essentials-of-Compilation).
@@ -67,7 +69,3 @@ of the following:
 * A simple comparison: `(< x y)` equals 1 if the comparison is true, and 0 if it is false
 * An if statement: `(if exp0 exp1 exp2)` evaluates `exp0`. If it is not 0 then the result is `exp1`, and if
   it is 0 then the result is `exp2`.
-
-(From JLoop)
-* A simple loop: `(while exp1 exp2)` Evaluates `exp1`, if it is not 0, it will evaluate `exp2`, then it will repeat
-this process until `exp1` is 0. The value of a while expression is 0.
