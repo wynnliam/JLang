@@ -163,9 +163,9 @@ let emit_pass : ((int,unit) X86Int.program, (int,unit) X86Int.program, (int,unit
  *)
 let passes = 
      PCons(initial_pass,
-     PCons(Uniquify.pass,
-     PCons(EmitJasm.pass,
-     PNil)))
+     (*PCons(Uniquify.pass,
+     PCons(EmitJasm.pass,*)
+     PNil)
      (*PCons(SelectInstructions.pass,
      PCons(AssignHomes.pass,
      PCons(PatchInstructions.pass,

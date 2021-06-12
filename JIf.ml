@@ -28,6 +28,11 @@ struct
     | SList[SSym "+";e1;e2] -> Prim(Add,[parse_exp e1; parse_exp e2])
     | SList[SSym "-";e1;e2] -> Prim(Add,[parse_exp e1; Prim(Neg,[parse_exp e2])])  (* "syntactic sugar" *)
     | SList[SSym "print";e] -> Prim(Print, [parse_exp e])
+    | SList[SSym "<";e1;e2] -> Prim(Compare LT,  [parse_exp e1; parse_exp e2])
+    | SList[SSym "<=";e1;e2] -> Prim(Compare LE, [parse_exp e1; parse_exp e2])
+    | SList[SSym "=";e1;e2] -> Prim(Compare EQ,  [parse_exp e1; parse_exp e2])
+    | SList[SSym ">=";e1;e2] -> Prim(Compare GE, [parse_exp e1; parse_exp e2])
+    | SList[SSym ">";e1;e2] -> Prim(Compare GT,  [parse_exp e1; parse_exp e2])
     | SList[SSym ":=";SSym(x);e2] -> Assign(x, parse_exp e2)
     | SList(SSym "seq" :: es) -> Seq(List.map parse_exp es)
     | sexp -> (prerr_endline "Cannot parse expression:";
@@ -45,6 +50,7 @@ struct
     | Prim(Neg,[e]) -> SList[SSym "-"; print_exp e]
     | Prim(Add,[e1;e2]) -> SList[SSym "+"; print_exp e1; print_exp e2]
     | Prim(Print, [e]) -> SList[SSym "print"; print_exp e]
+    | Prim(Compare c, [e1;e2]) -> SList[SSym (string_of_comparison c); print_exp e1; print_exp e2]
     | Assign(x,e) -> SList[SSym ":="; SSym x; print_exp e]
     | Seq es -> SList (List.map print_exp es)
     (* there is no reliable way to "re-sugar" the subtraction operator *)
