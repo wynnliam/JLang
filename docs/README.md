@@ -4,13 +4,17 @@ This compiler is written in OCaml. The goal of this language
 is to integrate it into the [OpenJDK ASM Toolset](https://github.com/openjdk/asmtools).
 
 ## What are the features of JLang?
-(Current version: JIf; Previous version is [JVar](./docs/README.md))
+(Current version: JVar)
 
-In addition to integer variables, sequences, rudimentary I/O,
-"JIf" supports the following:
+It is called "JVar" because it supports rudimentary integer variables.
 
-* Simple integer comparisons (<, <=, =, >, >=)
-* Simple if statements (see below for their semantics)
+JLang is a very minimal language. Currently it supports:
+* Integer variables
+* Integer addition and subtraction
+* Reading integers from the command-line
+* Printing integers to the command-line
+* Sequences of statements
+* Reassigning integer values
 
 
 ## How does this compiler work?
