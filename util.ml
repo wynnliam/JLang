@@ -38,6 +38,10 @@ let gensym s =
   incr fresh;
   s ^ "." ^ (string_of_int (!fresh)) 
 
+let genlbl l =
+  incr fresh;
+  "L" ^ l ^ (string_of_int (!fresh))
+
 (* READ *)
 
 let read_chan = ref stdin  (* change this to read from an arbitrary channel *)

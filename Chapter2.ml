@@ -81,9 +81,9 @@ module EmitJasm =
       | JIf.Int i -> [Push (Imm i)]
       | JIf.Var v -> [Load (Imm (find_var v))]
       | JIf.Prim(Compare cmp, [exp1; exp2]) ->
-          let lblthn = gensym "Lcmpt" in
-          let lblels = gensym "Lcmpf" in
-          let lbldon = gensym "Lcmpd" in
+          let lblthn = genlbl "Lcmpt" in
+          let lblels = genlbl "Lcmpf" in
+          let lbldon = genlbl "Lcmpd" in
           let thnblk = [Label (lblthn, Same); Push (Imm 1l); Goto lbldon] in
           let elsblk = [Label (lblels, Same); Push (Imm 0l); Goto lbldon] in
           let donblk = [Label (lbldon, Stack1)] in

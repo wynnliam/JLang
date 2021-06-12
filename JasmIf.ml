@@ -42,8 +42,8 @@ type instr =
 
 type 'pinfo program = Program of 'pinfo * label * instr list
 
-let readn = "read_int.read:\"()I\";"
-let writn = "read_int.write:\"(I)V\";"
+let readn = "read_int.read:\"()I\""
+let writn = "read_int.write:\"(I)V\""
 
 let string_of_stack_frame sf =
   match sf with
