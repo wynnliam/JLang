@@ -1,6 +1,6 @@
 (* UTILITIES *)
 
-type value = int64
+type value = int32
 
 (* TRY-FINALLY *)
 
@@ -43,7 +43,7 @@ let gensym s =
 let read_chan = ref stdin  (* change this to read from an arbitrary channel *)
 
 let read_int () =
-  match Int64.of_string_opt(input_line (!read_chan))
+  match Int32.of_string_opt(input_line (!read_chan))
   with
     Some i -> i
   | None -> (prerr_endline "invalid integer entered";
@@ -77,7 +77,7 @@ let run (bname:string) (infile_opt:string option) : value (* actually 8 unsigned
     match infile_opt with
     | None -> Printf.sprintf "./%s" bname 
     | Some infile -> Printf.sprintf "./%s < %s" bname infile in
-  Int64.of_int (Sys.command com)
+  Int32.of_int (Sys.command com)
     
 (* PASSES  *)
 

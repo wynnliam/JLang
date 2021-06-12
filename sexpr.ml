@@ -2,7 +2,7 @@
 
 type sexp =
   | SList of sexp list 
-  | SNum of int64
+  | SNum of int32
   | SSym of string
   | SString of string 
 
@@ -20,7 +20,7 @@ struct
   exception Parse_failed of string * lineno
 
   type token = 
-    Num of int64
+  | Num of int32
   | Sym of string
   | String of string
   | Lp
@@ -37,7 +37,7 @@ struct
   let tokenize (cs: char Stream.t) : (token*lineno) Stream.t =
     let lineno = ref 1 in
     let mk_num (s:string) : token =
-      match Int64.of_string_opt s with
+      match Int32.of_string_opt s with
 	Some i -> Num i
       | None -> raise (Parse_failed ("Invalid number: " ^ s, !lineno)) in
     let mk_sym (s:string) : token = Sym s in 
@@ -127,7 +127,7 @@ module Print :
     open Printf
     
     let rec print_sexp indent oc = function
-	SNum i -> output_string oc (Int64.to_string i)
+	    | SNum i -> output_string oc (Int32.to_string i)
       | SString s -> fprintf oc "\"%s\"" s
       | SSym s -> output_string oc s
       | SList [] -> output_string oc "()"

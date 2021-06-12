@@ -4,7 +4,7 @@ open Primop
 type var = string
 
 type exp =
-    Int of int64
+  | Int of int32
   | Prim of primop * exp list
   | Var of var
   | Let of var * exp * exp
