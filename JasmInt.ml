@@ -1,18 +1,5 @@
 open Util
 
-(*
-  sipush int -- pushes an int
-  istore_n -- stores int on stack at local variable n
-  iload_n -- loads as int variable at local n
-  iadd -- pops the two values on the stack, adds them, places result
-          back on stack
-  ineg -- negates the current item on the stack
-
-  made up Liam Instructions
-  invokestatic Method toString.... invokes toString method
-  invokevirtual Method println.... invokes printLn method
-*)
-
 type arg =
   | Imm of Int32.t
   | Var of string
@@ -46,7 +33,7 @@ let writn = "read_int.write:\"(I)V\";"
 
 let print_instruction oc intruction =
   match intruction with
-  | Push (Imm i) -> Printf.fprintf oc "bipush %d\n" (Int32.to_int i)
+  | Push (Imm i) -> Printf.fprintf oc "ldc int %d\n" (Int32.to_int i)
   | Push (Var v) -> Printf.fprintf oc "iload_%s\n" v
   | Load (Imm i) -> Printf.fprintf oc "iload_%d\n" (Int32.to_int i)
   | Load (Var v) -> Printf.fprintf oc "iload_%s\n" v
