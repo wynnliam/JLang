@@ -1,4 +1,4 @@
-SOURCES = util.ml primop.ml sexpr.ml JIf.ml JasmInt.ml Chapter2.ml 
+SOURCES = util.ml primop.ml sexpr.ml JIf.ml JasmIf.ml Chapter2.ml 
 LIBS = unix str
 RESULT = driver
 
