@@ -130,6 +130,16 @@ module EmitJasm =
           let els' = [Label (lblels, Same)] @ (do_exp els) @ [Goto lbldon] in
           let don = [Label(lbldon, Stack1)] in
           cnd' @ thn' @ els' @ don
+      | JLoop.While (cnd, bdy) ->
+          let lblcnd = genlbl "Lcnd" in
+          let lblbdy = genlbl "Lbdy" in
+          let lbldon = genlbl "Ldon" in
+          let cnd' =
+            [Label (lblcnd, Same)] @ (do_exp cnd) @ [Push (Imm 0l); Cmp (NE, lblbdy, lbldon)] in
+          let bdy' =
+            [Label (lblbdy, Same)] @ (do_exp bdy) @ [Pop; Goto lblcnd] in
+          let don = [Label (lbldon, Same); Push (Imm 0l)] in
+          cnd' @ bdy' @ don
 
     let emit_jasm expr = do_exp expr
 
@@ -181,13 +191,8 @@ let initial_pass : (unit JLoop.program, unit JLoop.program, unit JLoop.program) 
 let passes = 
      PCons(initial_pass,
      PCons(Uniquify.pass,
-     (*PCons(EmitJasm.pass,*)
-     PNil))
-     (*PCons(SelectInstructions.pass,
-     PCons(AssignHomes.pass,
-     PCons(PatchInstructions.pass,
-     PCons(execute_pass,
-	   PNil))))))))*)
+     PCons(EmitJasm.pass,
+     PNil)))
    
 (* Some specializations of Util functions.
    You may wish to alter the initial boolean flags. 
