@@ -1,0 +1,54 @@
+Testing: ./tests/simpleif.j
+PASS: source checking
+Raw pass result:
+(let x (read) 
+ (if 
+  (= 2 x) 42 24))
+Checking...
+PASS: uniquify
+Raw pass result:
+(let x.1 (read) 
+ (if 
+  (= 2 x.1) 42 24))
+Checking...
+PASS: emit jasm
+Raw pass result:
+main:
+ldc int 0;
+istore 1;
+Lmain:
+stack_frame_type full;
+locals_map class "[Ljava/lang/String;", int;
+invokestatic Method read_int.read:"()I";
+istore 1;
+ldc int 2;
+iload 1;
+if_icmpeq LLcmpt4;
+goto LLcmpf5;
+LLcmpt4:
+stack_frame_type same;
+ldc int 1;
+goto LLcmpd6;
+LLcmpf5:
+stack_frame_type same;
+ldc int 0;
+goto LLcmpd6;
+LLcmpd6:
+stack_frame_type stack1;
+stack_map int;
+ldc int 1;
+if_icmpeq LLthn1;
+goto LLels2;
+LLthn1:
+stack_frame_type same;
+ldc int 42;
+goto LLdon3;
+LLels2:
+stack_frame_type same;
+ldc int 24;
+goto LLdon3;
+LLdon3:
+stack_frame_type stack1;
+stack_map int;
+return;
+Checking...

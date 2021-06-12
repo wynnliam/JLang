@@ -119,6 +119,15 @@ module EmitJasm =
             k := !k + 1;
             acc @ (do_exp e) @ pop in
           List.fold_left f [] es
+      | JIf.If (cnd,thn,els) ->
+          let lblthn = genlbl "Lthn" in
+          let lblels = genlbl "Lels" in
+          let lbldon = genlbl "Ldon" in
+          let cnd' = do_exp cnd @ [Push (Imm 1l); Cmp (EQ, lblthn, lblels)] in
+          let thn' = [Label (lblthn, Same)] @ (do_exp thn) @ [Goto lbldon] in
+          let els' = [Label (lblels, Same)] @ (do_exp els) @ [Goto lbldon] in
+          let don = [Label(lbldon, Stack1)] in
+          cnd' @ thn' @ els' @ don
 
     let emit_jasm expr = do_exp expr
 
@@ -128,7 +137,7 @@ module EmitJasm =
       | 0 -> [Label ("Lmain", Same)]
       | n ->
           let f = fun v p acc -> acc @ [Push (Imm 0l); Store (Imm p)] in
-          (Env.fold f env []) @ [Label ("Lmain", Append n)]
+          (Env.fold f env []) @ [Label ("Lmain", Full n)]
 
     let do_program (JIf.Program(pinfo, expr)) =
       fresh := 0;

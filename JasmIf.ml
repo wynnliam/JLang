@@ -8,6 +8,7 @@ type arg =
   | Var of string (* TODO: Delete this *)
 
 type stack_frame =
+  | Full of int
   | Same  (* Same stack frame as ones that jumped to it *)
   | Append of int (* Same stack frame as ones that jumped to it with n additional locals *)
   | Stack1 (* Same stack frame as ones that jumped to it with 1 value (an int in our language) on the stack *)
@@ -48,6 +49,10 @@ let writn = "read_int.write:\"(I)V\""
 let string_of_stack_frame sf =
   match sf with
   | Same -> "stack_frame_type same"
+  | Full n ->
+      let cnt = take 0 (n - 1) in
+      let cnt' = List.map (fun i -> if i = (n - 1) then "int" else "int, ") cnt in
+      List.fold_left (fun acc next -> acc ^ next) "stack_frame_type full;\nlocals_map class \"[Ljava/lang/String;\", " cnt'
   | Append n ->
       let cnt = take 0 (n - 1) in
       let cnt' = List.map (fun i -> if i = (n - 1) then "int" else "int, ") cnt in
@@ -66,11 +71,11 @@ let inststr_cmp cmp =
 let print_instruction oc intruction =
   match intruction with
   | Push (Imm i) -> Printf.fprintf oc "ldc int %d;\n" (Int32.to_int i)
-  | Push (Var v) -> Printf.fprintf oc "iload_%s;\n" v
-  | Load (Imm i) -> Printf.fprintf oc "iload_%d;\n" (Int32.to_int i)
-  | Load (Var v) -> Printf.fprintf oc "iload_%s;\n" v
-  | Store (Imm i) -> Printf.fprintf oc "istore_%l;\n" (Int32.to_int i)
-  | Store (Var v) -> Printf.fprintf oc "istore_%s;\n" v
+  | Push (Var v) -> Printf.fprintf oc "iload %s;\n" v
+  | Load (Imm i) -> Printf.fprintf oc "iload %d;\n" (Int32.to_int i)
+  | Load (Var v) -> Printf.fprintf oc "iload %s;\n" v
+  | Store (Imm i) -> Printf.fprintf oc "istore %l;\n" (Int32.to_int i)
+  | Store (Var v) -> Printf.fprintf oc "istore %s;\n" v
   | Add -> Printf.fprintf oc "iadd;\n"
   | Neg -> Printf.fprintf oc "ineg;\n"
   | Cmp (cmp, l1, l2) -> Printf.fprintf oc "if_icmp%s %s;\ngoto %s;\n" (inststr_cmp cmp) l1 l2
