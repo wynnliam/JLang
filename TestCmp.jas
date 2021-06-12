@@ -1,0 +1,44 @@
+Testing: ./tests/test_cmp2.j
+PASS: source checking
+Raw pass result:
+(let x (read) 
+ (let y (read) 
+  (< x y)))
+Checking...
+PASS: uniquify
+Raw pass result:
+(let x.1 (read) 
+ (let y.2 (read) 
+  (< x.1 y.2)))
+Checking...
+PASS: emit jasm
+Raw pass result:
+main:
+ldc int 0;
+istore_1;
+ldc int 0;
+istore_2;
+Lmain:
+stack_frame_type append;
+locals_map int, int;
+invokestatic Method read_int.read:"()I";;
+istore_1;
+invokestatic Method read_int.read:"()I";;
+istore_2;
+iload_1;
+iload_2;
+if_icmplt Lcmpt.1;
+goto Lcmpf.2;
+Lcmpt.1:
+stack_frame_type same;
+ldc int 1;
+goto Lcmpd.3;
+Lcmpf.2:
+stack_frame_type same;
+ldc int 0;
+goto Lcmpd.3;
+Lcmpd.3:
+stack_frame_type stack1;
+stack_map int;
+return;
+Checking...

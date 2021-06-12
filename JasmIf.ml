@@ -1,4 +1,5 @@
 open Util
+open Primop
 
 type label = string
 
@@ -25,6 +26,8 @@ type instr =
     (* Pops an int off the stack, negates it, then pushes it back onto
        the stack *)
   | Neg
+    (* Pop two ints off the stack, do the comparison. If true, go to first label. Otherwise go to second label *)
+  | Cmp of comparison * label * label
     (* Pops an operand off the stack *)
   | Pop
     (* Invokes a static method *)
@@ -32,6 +35,8 @@ type instr =
     (* Invokes a virtual method *)
   | Virtual of string
   | Label of label * stack_frame
+    (* Unconditional jump to label *)
+  | Goto of label
     (* End of a program *)
   | Return
 
@@ -49,6 +54,14 @@ let string_of_stack_frame sf =
       List.fold_left (fun acc next -> acc ^ next) "stack_frame_type append;\nlocals_map " cnt'
   | Stack1 -> "stack_frame_type stack1;\nstack_map int"
 
+let inststr_cmp cmp =
+  match cmp with
+  | LT -> "lt"
+  | LE -> "le"
+  | EQ -> "eq"
+  | GE -> "ge"
+  | GT -> "gt"
+
 let print_instruction oc intruction =
   match intruction with
   | Push (Imm i) -> Printf.fprintf oc "ldc int %d;\n" (Int32.to_int i)
@@ -59,10 +72,12 @@ let print_instruction oc intruction =
   | Store (Var v) -> Printf.fprintf oc "istore_%s;\n" v
   | Add -> Printf.fprintf oc "iadd;\n"
   | Neg -> Printf.fprintf oc "ineg;\n"
+  | Cmp (cmp, l1, l2) -> Printf.fprintf oc "if_icmp%s %s;\ngoto %s;\n" (inststr_cmp cmp) l1 l2
   | Pop -> Printf.fprintf oc "pop;\n"
   | InvokeStatic f -> Printf.fprintf oc "invokestatic Method %s;\n" f
   | Virtual v -> Printf.fprintf oc "invokevirtual Method %s;\n" v
   | Label (lbl, sf) -> Printf.fprintf oc "%s:\n%s;\n" lbl (string_of_stack_frame sf)
+  | Goto lbl -> Printf.fprintf oc "goto %s;\n" lbl
   | Return -> Printf.fprintf oc "return;\n"
 
 let rec print_instrs oc instrs =

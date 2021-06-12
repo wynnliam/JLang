@@ -80,7 +80,16 @@ module EmitJasm =
       match exp with
       | JIf.Int i -> [Push (Imm i)]
       | JIf.Var v -> [Load (Imm (find_var v))]
-      | JIf.Prim(Compare _, _) -> failwith "TODO: Add branching!"
+      | JIf.Prim(Compare cmp, [exp1; exp2]) ->
+          let lblthn = gensym "Lcmpt" in
+          let lblels = gensym "Lcmpf" in
+          let lbldon = gensym "Lcmpd" in
+          let thnblk = [Label (lblthn, Same); Push (Imm 1l); Goto lbldon] in
+          let elsblk = [Label (lblels, Same); Push (Imm 0l); Goto lbldon] in
+          let donblk = [Label (lbldon, Stack1)] in
+          let exp1' = do_exp exp1 in
+          let exp2' = do_exp exp2 in
+          exp1' @ exp2' @ [Cmp (cmp, lblthn, lblels)] @ thnblk @ elsblk @ donblk
       | JIf.Prim(op, args) ->
           let f = fun acc e -> (do_exp e) @ acc in
           let args' = List.fold_left f [] args in
@@ -114,6 +123,7 @@ module EmitJasm =
           (Env.fold f env []) @ [Label ("Lmain", Append n)]
 
     let do_program (JIf.Program(pinfo, expr)) =
+      fresh := 0;
       env := Env.empty;
       let expr' = emit_jasm expr in
       Program(!env, "main", (compute_intro !env) @ expr' @ [Return])
