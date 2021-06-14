@@ -63,6 +63,7 @@ module EmitJasm =
       | Primop.Neg -> [Neg]
       | Primop.Read -> [InvokeStatic readn]
       | Primop.Print -> [InvokeStatic writn; Push (Imm 0l)]
+      | _ -> assert false (* Compare handled seperately *)
 
     let env = ref Env.empty
     let next_var_index = ref 1l

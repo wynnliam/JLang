@@ -94,3 +94,9 @@ let rec print_instrs oc instrs =
 let print_program oc (Program(pinfo, lbl, instrs)) =
   Printf.fprintf oc "%s:\n" lbl;
   print_instrs oc instrs
+
+let emit (bname:string) (Program(pinfo, lbl, instrs)) =
+  let oc = open_out (bname ^ ".jasm") in
+  print_instrs oc instrs;
+  close_out oc
+
