@@ -186,6 +186,12 @@ let initial_pass : (unit JLoop.program, unit JLoop.program, unit JLoop.program) 
    printer=JLoop.print_program;	      
    checker=JLoop.check_program true;}
 
+let emit_pass : (Int32.t Util.Env.t JasmIf.program, Int32.t Util.Env.t JasmIf.program, Int32.t Util.Env.t JasmIf.program) pass =  
+  {name="emit";
+   transformer=(fun p -> p);
+   printer=(fun oc p -> ());
+   checker=(fun p -> emit JasmIf.emit p; p)}
+
 (* Define sequence of passes for this Chapter.
    Adjust this as you implement more passes.
  *)
@@ -193,7 +199,8 @@ let passes =
      PCons(initial_pass,
      PCons(Uniquify.pass,
      PCons(EmitJasm.pass,
-     PNil)))
+     PCons(emit_pass,
+     PNil))))
    
 (* Some specializations of Util functions.
    You may wish to alter the initial boolean flags. 

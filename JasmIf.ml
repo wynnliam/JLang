@@ -95,8 +95,46 @@ let print_program oc (Program(pinfo, lbl, instrs)) =
   Printf.fprintf oc "%s:\n" lbl;
   print_instrs oc instrs
 
+let print_class_def oc cname =
+  Printf.fprintf oc "super class %s\n" cname;
+  Printf.fprintf oc "\tversion 59:0\n";
+  Printf.fprintf oc "{\n"
+
+let print_constructor oc =
+  let base = "java/lang/Object.\"<init>\":\"()V\"" in
+  Printf.fprintf oc "\tMethod \"<init>\":\"()V\"\n";
+  Printf.fprintf oc "\tstack 1 locals 1\n";
+  Printf.fprintf oc "\t{\n";
+  Printf.fprintf oc "\t\taload_0;\n";
+  Printf.fprintf oc "\t\tinvokespecial Method %s;\n" base;
+  Printf.fprintf oc "\t\treturn;\n";
+  Printf.fprintf oc "\t}\n"
+
+let print_main_header oc num_locals =
+  Printf.fprintf oc "\tpublic static Method main:";
+  Printf.fprintf oc "\"([Ljava/lang/String;)V\"\n";
+  Printf.fprintf oc "\tstack 100 locals %d\n" num_locals;
+  Printf.fprintf oc "\t{\n"
+
+let print_main_close oc = Printf.fprintf oc "\t}\n"
+
+let print_class_close oc = Printf.fprintf oc "}"
+
+let fname_of_bname bname =
+  let dname = (Filename.dirname bname) ^ "/" in
+  let ld = String.length dname in
+  let lr = (String.length bname) - ld in
+  let bl = List.rev (List.of_seq (String.to_seq bname)) in
+  let bl' = takeg lr bl in
+  String.capitalize_ascii (String.of_seq (List.to_seq (List.rev bl')))
+
 let emit (bname:string) (Program(pinfo, lbl, instrs)) =
   let oc = open_out (bname ^ ".jasm") in
+  Printf.fprintf stdout "%s\n" (fname_of_bname bname);
+  print_class_def oc (fname_of_bname bname);
+  print_constructor oc;
+  print_main_header oc (1 + (Env.cardinal pinfo));
   print_instrs oc instrs;
+  print_main_close oc;
+  print_class_close oc;
   close_out oc
-
