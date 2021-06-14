@@ -95,8 +95,16 @@ let print_program oc (Program(pinfo, lbl, instrs)) =
   Printf.fprintf oc "%s:\n" lbl;
   print_instrs oc instrs
 
+let print_class_def oc cname =
+  Printf.fprintf oc "super class %s\n" cname;
+  Printf.fprintf oc "\tversion 59:0\n";
+  Printf.fprintf oc "{\n"
+
+let print_class_close oc = Printf.fprintf oc "}"
+
 let emit (bname:string) (Program(pinfo, lbl, instrs)) =
   let oc = open_out (bname ^ ".jasm") in
+  print_class_def oc bname;
   print_instrs oc instrs;
+  print_class_close oc;
   close_out oc
-
