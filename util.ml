@@ -9,6 +9,10 @@ let try_finalize f x finally y =
   finally y;
   res
 
+let rec takeg (n:int) : 'a list -> 'a list = function
+  | h::t when n > 0 -> h::(takeg (n-1) t)
+  | _ -> []
+
 let take (min : int) (max : int) : int list =
   let rec f (i : int) =
     if i = max then [max] else i :: (f (i + 1))

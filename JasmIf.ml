@@ -120,9 +120,18 @@ let print_main_close oc = Printf.fprintf oc "\t}\n"
 
 let print_class_close oc = Printf.fprintf oc "}"
 
+let fname_of_bname bname =
+  let dname = (Filename.dirname bname) ^ "/" in
+  let ld = String.length dname in
+  let lr = (String.length bname) - ld in
+  let bl = List.rev (List.of_seq (String.to_seq bname)) in
+  let bl' = takeg lr bl in
+  String.capitalize_ascii (String.of_seq (List.to_seq (List.rev bl')))
+
 let emit (bname:string) (Program(pinfo, lbl, instrs)) =
   let oc = open_out (bname ^ ".jasm") in
-  print_class_def oc bname;
+  Printf.fprintf stdout "%s\n" (fname_of_bname bname);
+  print_class_def oc (fname_of_bname bname);
   print_constructor oc;
   print_main_header oc (1 + (Env.cardinal pinfo));
   print_instrs oc instrs;
