@@ -100,11 +100,22 @@ let print_class_def oc cname =
   Printf.fprintf oc "\tversion 59:0\n";
   Printf.fprintf oc "{\n"
 
+let print_constructor oc =
+  let base = "java/lang/Object.\"<init>\":\"()V\"" in
+  Printf.fprintf oc "\tMethod \"<init>\":\"()V\"\n";
+  Printf.fprintf oc "\tstack 1 locals 1\n";
+  Printf.fprintf oc "\t{\n";
+  Printf.fprintf oc "\t\taload_0;\n";
+  Printf.fprintf oc "\t\tinvokespecial Method %s;\n" base;
+  Printf.fprintf oc "\t\treturn;\n";
+  Printf.fprintf oc "\t}\n"
+
 let print_class_close oc = Printf.fprintf oc "}"
 
 let emit (bname:string) (Program(pinfo, lbl, instrs)) =
   let oc = open_out (bname ^ ".jasm") in
   print_class_def oc bname;
+  print_constructor oc;
   print_instrs oc instrs;
   print_class_close oc;
   close_out oc
