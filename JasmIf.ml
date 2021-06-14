@@ -110,12 +110,22 @@ let print_constructor oc =
   Printf.fprintf oc "\t\treturn;\n";
   Printf.fprintf oc "\t}\n"
 
+let print_main_header oc num_locals =
+  Printf.fprintf oc "\tpublic static Method main:";
+  Printf.fprintf oc "\"([Ljava/lang/String;)V\"\n";
+  Printf.fprintf oc "\tstack 100 locals %d\n" num_locals;
+  Printf.fprintf oc "\t{\n"
+
+let print_main_close oc = Printf.fprintf oc "\t}\n"
+
 let print_class_close oc = Printf.fprintf oc "}"
 
 let emit (bname:string) (Program(pinfo, lbl, instrs)) =
   let oc = open_out (bname ^ ".jasm") in
   print_class_def oc bname;
   print_constructor oc;
+  print_main_header oc (1 + (Env.cardinal pinfo));
   print_instrs oc instrs;
+  print_main_close oc;
   print_class_close oc;
   close_out oc
