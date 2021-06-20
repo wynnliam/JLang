@@ -158,6 +158,13 @@ module EmitJasm =
             let exp1' = do_exp ifexp1 in
             let exp2' = do_exp ifexp2 in
             exp1' @ [Store (Imm vi)] @ exp2' @ [Load (Imm vi); Cmp (c, lblthn, lblels)] @ thnblk @ elsblk @ donblk
+        | _ ->
+            let op' = do_op op in
+            let v = gensym "`var" in
+            let vi = add_var v in
+            let e1 = do_exp ifexp1 in
+            let e2 = do_exp ifexp2 in
+            e1 @ [Store (Imm vi)] @ e2 @ [Load (Imm vi)] @ op'
 
     let emit_jasm expr = do_exp expr
 

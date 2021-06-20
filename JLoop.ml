@@ -117,17 +117,4 @@ let check_program (user:bool)  (Program (_,e) as p) =
      check_exp Env.empty e;
      p
    with
-     CheckError -> if user then raise UserStaticError else failwith "JVar check failure"
-   
-(* Interpretation *)
-
-let rec interp_exp (env:value Env.t) = function
-    Int n -> n
-  | Prim(op,args) -> interp_primop op (List.map (interp_exp env) args)
-  | Var x -> Env.find x env
-  | Let (x,e1,e2) -> interp_exp (Env.add x (interp_exp env e1) env) e2
-
-let interp_program (Program(_,e)) = interp_exp Env.empty e
-
-
-	
+     CheckError -> if user then raise UserStaticError else failwith "JLoop check failure"
