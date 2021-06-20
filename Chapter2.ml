@@ -57,13 +57,6 @@ module Uniquify =
 module EmitJasm =
   struct
     open JasmIf
-    let do_op op =
-      match op with
-      | Primop.Add -> [Add]
-      | Primop.Neg -> [Neg]
-      | Primop.Read -> [InvokeStatic readn]
-      | Primop.Print -> [InvokeStatic writn; Push (Imm 0l)]
-      | _ -> assert false (* Compare handled seperately *)
 
     let env = ref Env.empty
     let next_var_index = ref 1l
@@ -87,10 +80,20 @@ module EmitJasm =
       | None -> failwith ("Undeclare variable" ^ v)
       | Some i -> i
 
+    let do_op op =
+      match op with
+      | Primop.Add -> [Add]
+      | Primop.Neg -> [Neg]
+      | Primop.Read -> [InvokeStatic readn]
+      | Primop.Print -> [InvokeStatic writn; Push (Imm 0l)]
+      | _ -> assert false (* Compare handled seperately *)
+
     let rec do_exp exp =
       match exp with
       | JLoop.Int i -> [Push (Imm i)]
       | JLoop.Var v -> [Load (Imm (find_var v))]
+      | JLoop.Prim(op, [If(cnd1,thn1,els1); If(cnd2,thn2,els2)]) ->
+          do_double_if op (JLoop.If(cnd1,thn1,els1)) (JLoop.If(cnd2,thn2,els2))
       | JLoop.Prim(Compare cmp, [exp1; exp2]) ->
           let lblthn = genlbl "Lcmpt" in
           let lblels = genlbl "Lcmpf" in
@@ -141,6 +144,20 @@ module EmitJasm =
             [Label (lblbdy, Same)] @ (do_exp bdy) @ [Pop; Goto lblcnd] in
           let don = [Label (lbldon, Same); Push (Imm 0l)] in
           cnd' @ bdy' @ don
+      and do_double_if (op : Primop.primop) ifexp1 ifexp2 =
+        match op with
+        | Primop.Compare c -> 
+            let lblthn = genlbl "Lcmpt" in
+            let lblels = genlbl "Lcmpf" in
+            let lbldon = genlbl "Lcmpd" in
+            let v = gensym "`var" in
+            let vi = add_var v in
+            let thnblk = [Label (lblthn, Same); Push (Imm 1l); Goto lbldon] in
+            let elsblk = [Label (lblels, Same); Push (Imm 0l); Goto lbldon] in
+            let donblk = [Label (lbldon, Stack1)] in
+            let exp1' = do_exp ifexp1 in
+            let exp2' = do_exp ifexp2 in
+            exp1' @ [Store (Imm vi)] @ exp2' @ [Load (Imm vi); Cmp (c, lblthn, lblels)] @ thnblk @ elsblk @ donblk
 
     let emit_jasm expr = do_exp expr
 
