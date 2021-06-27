@@ -92,8 +92,14 @@ module EmitJasm =
       match exp with
       | JLoop.Int i -> [Push (Imm i)]
       | JLoop.Var v -> [Load (Imm (find_var v))]
-      | JLoop.Prim(op, [If(cnd1,thn1,els1); If(cnd2,thn2,els2)]) ->
-          do_double_if op (JLoop.If(cnd1,thn1,els1)) (JLoop.If(cnd2,thn2,els2))
+      (*
+        Since these use a stack1 stack frame type, we need to store
+        the first arg in a temporary variable to clear the stack.
+      *)
+      | JLoop.Prim(op, [e1; JLoop.If(cnd2,thn2,els2)]) ->
+          do_op_then_branch_construct op e1 (JLoop.If(cnd2,thn2,els2))
+      | JLoop.Prim(op, [e1; JLoop.While(cnd, bdy)]) ->
+          do_op_then_branch_construct op e1 (JLoop.While(cnd,bdy))
       | JLoop.Prim(Compare cmp, [exp1; exp2]) ->
           let lblthn = genlbl "Lcmpt" in
           let lblels = genlbl "Lcmpf" in
@@ -105,8 +111,7 @@ module EmitJasm =
           let exp2' = do_exp exp2 in
           exp1' @ exp2' @ [Cmp (cmp, lblthn, lblels)] @ thnblk @ elsblk @ donblk
       | JLoop.Prim(op, args) ->
-          let f = fun acc e -> (do_exp e) @ acc in
-          let args' = List.fold_left f [] args in
+          let args' = List.concat (List.map do_exp args) in
           let op' = do_op op in
           args' @ op'
       | JLoop.Let(v, e1, e2) ->
@@ -144,7 +149,7 @@ module EmitJasm =
             [Label (lblbdy, Same)] @ (do_exp bdy) @ [Pop; Goto lblcnd] in
           let don = [Label (lbldon, Same); Push (Imm 0l)] in
           cnd' @ bdy' @ don
-      and do_double_if (op : Primop.primop) ifexp1 ifexp2 =
+      and do_op_then_branch_construct (op : Primop.primop) exp1 exp2 =
         match op with
         | Primop.Compare c -> 
             let lblthn = genlbl "Lcmpt" in
@@ -155,15 +160,15 @@ module EmitJasm =
             let thnblk = [Label (lblthn, Same); Push (Imm 1l); Goto lbldon] in
             let elsblk = [Label (lblels, Same); Push (Imm 0l); Goto lbldon] in
             let donblk = [Label (lbldon, Stack1)] in
-            let exp1' = do_exp ifexp1 in
-            let exp2' = do_exp ifexp2 in
+            let exp1' = do_exp exp1 in
+            let exp2' = do_exp exp2 in
             exp1' @ [Store (Imm vi)] @ exp2' @ [Load (Imm vi); Cmp (c, lblthn, lblels)] @ thnblk @ elsblk @ donblk
         | _ ->
             let op' = do_op op in
             let v = gensym "`var" in
             let vi = add_var v in
-            let e1 = do_exp ifexp1 in
-            let e2 = do_exp ifexp2 in
+            let e1 = do_exp exp1 in
+            let e2 = do_exp exp2 in
             e1 @ [Store (Imm vi)] @ e2 @ [Load (Imm vi)] @ op'
 
     let emit_jasm expr = do_exp expr
