@@ -41,10 +41,20 @@ When `driver` is on your machine, you can run it with:
 This will run the driver on each JLang program in the `tests` directory.
 The `-d 2` flag will ask the driver to print out the code at each step.
 
+The output file this creates will captialize the first letter of the
+file. So if I ran:
+
+`./driver -d 2 ./tests/print_test.j`
+
+The result will be:
+
+`./tests/Print_test.jasm`
+
 To assemble and run the resulting jasm, do:
 
 `cd ./tests`
-`./run.sh [NAME OF JASM FILE].jasm`
+
+`./run.sh [CAPITALIZED NAME OF JASM FILE].jasm`
 
 ## JLang Semantics
 I will now describe JLang's features and semantics.
