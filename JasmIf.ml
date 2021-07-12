@@ -129,9 +129,10 @@ let fname_of_bname bname =
   String.capitalize_ascii (String.of_seq (List.to_seq (List.rev bl')))
 
 let emit (bname:string) (Program(pinfo, lbl, instrs)) =
-  let oc = open_out (bname ^ ".jasm") in
-  Printf.fprintf stdout "%s\n" (fname_of_bname bname);
-  print_class_def oc (fname_of_bname bname);
+  let fname = fname_of_bname bname in
+  Printf.fprintf stdout "\nNAME: %s\n" fname;
+  let oc = open_out ((Filename.dirname bname) ^ "/" ^ fname ^ ".jasm") in
+  print_class_def oc fname;
   print_constructor oc;
   print_main_header oc (1 + (Env.cardinal pinfo));
   print_instrs oc instrs;
