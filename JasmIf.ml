@@ -95,9 +95,12 @@ let print_program oc (Program(pinfo, lbl, instrs)) =
   Printf.fprintf oc "%s:\n" lbl;
   print_instrs oc instrs
 
+let version_major = 52
+let version_minor = 0
+
 let print_class_def oc cname =
   Printf.fprintf oc "super class %s\n" cname;
-  Printf.fprintf oc "\tversion 59:0\n";
+  Printf.fprintf oc "\tversion %d:%d\n" version_major version_minor;
   Printf.fprintf oc "{\n"
 
 let print_constructor oc =
