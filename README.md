@@ -56,6 +56,32 @@ To assemble and run the resulting jasm, do:
 
 `./run.sh [CAPITALIZED NAME OF JASM FILE].jasm`
 
+### Note about version
+By default, we assume that the version of Java Byte Code you wish to compile to is
+52.0. If you want a different version you need to do two things: recompile `read_int.java`
+with whatever version of `javac` you have, and then rebuild the compiler with the version
+you want.
+
+1. Open `JasmIf.ml`
+2. Find the variables `version_major` and `version_minor`. They are near the bottom of the file.
+3. Change them to the numbers you want.
+4. Run `Make`
+
+Now your compiler will produce the version you want. **Assuming your local installation of JDK is the same** now do the following:
+1. Run navigate to the tests folder:
+
+```
+$ cd tests/
+```
+
+2. Recompile `read_int.java`:
+
+```
+$ javac read_int.java
+```
+
+Now your toolchain should be set to the correct version!
+
 ## JLang Semantics
 I will now describe JLang's features and semantics.
 JLang has only one type: 64 bit integers. A JLang program is a single program
