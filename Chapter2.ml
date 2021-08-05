@@ -184,6 +184,7 @@ module EmitJasm =
     let do_program (JLoop.Program(pinfo, expr)) =
       fresh := 0;
       env := Env.empty;
+      next_var_index := 1l;
       let expr' = emit_jasm expr in
       Program(!env, "main", (compute_intro !env) @ expr' @ [Return])
 
